@@ -55,7 +55,7 @@ namespace Gossip4Net.Http.Modifier.Request.Registration
             return ForParameter(parameterContext, relevantAttributes);
         }
 
-        public virtual IList<IHttpRequestModifier>? ForMethod(RequestMethodContext methodContext, IList<T> atttributes)
+        public virtual IList<IHttpRequestModifier>? ForMethod(RequestMethodContext methodContext, IList<T> attributes)
         {
             return null;
         }

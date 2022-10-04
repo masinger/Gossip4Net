@@ -7,18 +7,10 @@ namespace Gossip4Net.Http.Test
 {
     public class HttpGossipBuilderTest
     {
-
-        public void Foo()
-        {
-            new HttpGossipBuilder<IHttpBinClient>().AddDefaultBehavior(new JsonSerializerOptions{
-                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-            });
-        }
-
         private readonly IHttpBinClient client = HttpGossipBuilder<IHttpBinClient>.NewDefaultBuilder(new JsonSerializerOptions()
-            {
-                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-            }
+        {
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+        }
         ).Build();
 
         [Fact]
@@ -138,7 +130,7 @@ namespace Gossip4Net.Http.Test
 
             // Assert
             result.headers.Should().ContainKey("Actor"); // httpbin returns header names capitalized 
-            result.headers["Actor"].Should().Be("bar"); 
+            result.headers["Actor"].Should().Be("bar");
         }
 
         [Fact]

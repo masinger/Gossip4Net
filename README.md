@@ -1,6 +1,25 @@
 # Gossip4Net
 Gossip4Net is an extensible http client middleware similar to Spring Feign. It allows developers to easily consume APIs using an interface contract, which gets automatically implemented.
 
+1. [Getting started](#getting-started)
+    1. [Get Gossip4Net](#0-get-gossip4net)
+    1. [Define your API contract and models](#1-define-your-api-contract-and-models)
+    1. [Obtain and configure a HttpGossipBuilder](#2-obtain-and-configure-a-httpgossipbuilder)
+    1. [Let Gossip4Net implement your API interface](#3-let-gossip4net-implement-your-api-interface)
+    1. [Use your API](#4-use-your-api)
+1. [Feaures](#features)
+    - [Url mapping](#url-mapping)
+    - [Path variables](#path-variables)
+    - [Query variables](#query-variables)
+    - [Header variables](#header-variables)
+    - [Static header values](#static-header-values)
+    - [Raw http response](#raw-http-response)
+    - [Async and synchronous requests](#async-and-synchronous-requests)
+    - [Void methods](#void-methods)
+    - [Request body](#request-body)
+    - [Response body](#response-body)
+    - [Json (de)serialization](#json-deserialization)
+
 ## Getting started
 
 ### 0. Get Gossip4Net
@@ -100,3 +119,262 @@ namespace MyDemo {
     }
 }
 ```
+
+## Features
+
+### Url mapping
+The API-Url can be specified using the `[HttpApi]` attribute
+
+```csharp
+[HttpApi("https://httpbin.org")]
+public interface MyApi {}
+```
+
+and/or using the method mapping attributes (e.g. `[GetMapping]`, `[PostMapping]`, `[PatchMapping]`):
+
+```csharp
+[HttpApi]
+public interface MyApi {
+    [GetMapping("https://httpbin.org/get")]
+    Task<HttpResponseMessage> GetResponseAync();
+}
+```
+
+If both are present and the url specified on the method mapping is relative, it will be resolved/appended to the url given in `[HttpApi]`.
+
+```csharp
+[HttpApi("https://httpbin.org")]
+public interface MyApi {
+    [GetMapping("/get")]
+    Task<HttpResponseMessage> GetResponseAync();
+}
+```
+
+The above example will result in a call to `https://httpbin.org/get`.
+
+### Path variables
+Parameter values can be interpolated into the request path using the `[PathVariable]` attribute.
+
+```csharp
+[HttpApi("https://httpbin.org")]
+public interface MyApi {
+    [GetMapping("/{method}")]
+    Task<HttpResponseMessage> GetResponseAync([PathVariable] string method);
+
+    [GetMapping("/{operation}")]
+    Task<HttpResponseMessage> GetResponseWithExplicitPathVariableNameAync([PathVariable("operation")] string method);
+}
+```
+
+By default, the placeholder name is determined by the parameter name (e.g. "method").
+It can also be specified manually.
+
+*Available properties*
+| Property | Description | Default |
+|----------|-------------|---------|
+| `Name` | The path variable name. | The annotated parameter's name. |
+| `EscapePath` | If `false`, special characters (like `/` and `?`) are not escaped. | `true` |
+
+### Query variables
+Parameter values can be send as a query parameter using the `[QueryVariable]` attribute.
+
+```csharp
+[HttpApi("https://httpbin.org")]
+public interface MyApi {
+    [GetMapping("/get")]
+    HttpResponseMessage GetWithQuery([QueryVariable] string testParam);
+
+    [GetMapping("/get")]
+    HttpResponseMessage GetWithExplicitlyNamedQuery([QueryVariable("testParam")] string myValue);
+}
+```
+By default, the query variable name is determined by the parameter name (e.g. "method").
+It can also be specified manually.
+
+*Available properties*
+| Property | Description | Default |
+|----------|-------------|---------|
+| `Name` | The query parameter name. | The annotated parameter's name. |
+| `OmitEmpty` | If `true`, the query parameter will be omitted for given `null` values. | `true` |
+| `EnumerateUsingMultipleParams` | If the parameter type is an `IEnumerable` and this is set to `true`, the query parameter name will be repeated for each entry. | `true` |
+
+### Header variables
+Parameter values can be sent as request headers using the `[HeaderVariable]` attribute.
+
+```csharp
+[HttpApi("https://httpbin.org")]
+public interface MyApi {
+    [DeleteMapping("/delete")]
+    Task<HttpResponseMessage> DeleteAsyncWithHeader([HeaderVariable] string actor);
+
+    [DeleteMapping("/delete")]
+    Task<HttpResponseMessage> DeleteAsyncWithExplicitHeader([HeaderVariable("actor")] string myValue);
+}
+```
+By default, the header name is determined by the parameter name (e.g. "method").
+It can also be specified manually.
+
+*Available properties*
+| Property | Description | Default |
+|----------|-------------|---------|
+| `Name` | The header name to be used. | The annotated parameter's name. |
+| `OmitEmpty` | If `true`, the header will be omitted for given `null` values. | `true` |
+
+### Static header values
+In order to always send a specific header, the `[HeaderValue]` attribute can be applied to a method or to the entire interface.
+
+```csharp
+[HttpApi("https://httpbin.org")]
+[HeaderValue("Interface-Header", "interface")]
+public interface MyApi {
+    [GetMapping("/get")]
+    [HeaderValue("Method-Header", "method")]
+    Task<HttpResponseMessage> GetAyncWithStaticHeader();
+}
+```
+
+### Raw http response
+If a method's return type is `HttpResponseMessage` or `Task<HttpResponseMessage>` the raw `HttpResponseMessage` will be returned.
+
+```csharp
+[HttpApi("https://httpbin.org")]
+public interface MyApi {
+    [GetMapping("/get")]
+    Task<HttpResponseMessage> GetRawResponseAsnc();
+}
+```
+
+> **Note**: Even though the response body will not be parsed and the entire http response body is getting returned, other response processing (e.g. checking the response status) still applies.
+
+### Async and synchronous requests
+You can send both asynchronous and synchronous requests.
+If a request should be performed asynchronously is determined be the method's return type (being `Task<>` or `Task`) only.
+Aync methods do not have to end with the `Async`-suffix.
+
+```csharp
+[HttpApi("https://httpbin.org")]
+public interface MyApi
+{
+    [GetMapping("/get")]
+    Task<HttpResponseMessage> GetAsync();
+
+    [GetMapping("/get")]
+    HttpResponseMessage Get();
+}
+```
+
+
+### Void methods
+Methods returning either `void` or `Task`, will not return anything.
+Nevertheless, the response will still be received and processed (e.g. checking the response code) by the library.
+A call will be blocked and a returned Task will not complete until a response is received.
+
+```csharp
+[HttpApi("https://httpbin.org")]
+public interface MyApi
+{
+    [GetMapping("/get")]
+    Task GetAsync();
+
+    [GetMapping("/get")]
+    void Get();
+}
+```
+
+### Request body
+Parameter values without an attribute will be serialized and send using the request body.
+
+```csharp
+public class Person {
+    public string? Firstname { get; set; }
+    public string? Lastname { get; set; }
+    public int Age { get; set; }
+}
+
+[HttpApi("https://httpbin.org")]
+public interface MyApi
+{
+    [PostMapping("/post")]
+    HttpResponseMessage Post(Person p);
+
+    [PostMapping("/post")]
+    Task<HttpResponseMessage> PostAsync(Person p);
+}
+```
+
+The serialization format depends on the current configuration and can be customized using the `HttpGossipBuilder`.
+The default is JSON.
+
+**See also**:
+- [Json (de)serialization](#json-deserialization)
+
+
+### Response body
+Gossip4Net will attempt to return an instance of the method's specified return type.
+It will be deserialized using the response body.
+The deserialization format depends on the current configuration and the received response headers.
+It can be customized using the `HttpGossipBuilder`.
+
+```csharp
+public record HttpBinResponse(IDictionary<string, string> Headers, string Origin, string Url, IDictionary<string, string> Args);
+
+[HttpApi("https://httpbin.org")]
+public interface MyApi
+{
+    [GetMapping("/get")]
+    Task<HttpBinResponse> GetAsync();
+
+    [GetMapping("/get")]
+    HttpBinResponse Get();
+}
+```
+
+### Json (de)serialization
+By default, JSON is used to serialize request and response bodies.
+
+JSON serialization is added by the `JsonRequestBodyRegistration` and `JsonResponseConstructorRegistration`. 
+
+
+You can configure the JSON serializer using one of the following extension/helper methods.
+
+*Constructing a builder and adding default behavior*
+```csharp
+IHttpGossipBuilder<MyApi> builder = new HttpGossipBuilder<MyApi>()
+    .AddDefaultBehavior(new JsonSerializerOptions()
+    {
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+    });
+```
+
+*Creating a builder using builder helper method*
+```csharp
+IHttpGossipBuilder<MyApi> builder = HttpGossipBuilder<MyApi>.NewDefaultBuilder(
+    new JsonSerializerOptions
+    {
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+    });
+```
+
+*While using dependency injection*
+```csharp
+IServiceCollection services = new ServiceCollection();
+services.AddGossipHttpClient<MyApi>(
+    builder => builder.AddDefaultBehavior(new JsonSerializerOptions
+    {
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+    })
+);
+```
+
+
+If you don't intend to use the helper/extension methods, you can add JSON support like this:
+```csharp
+IHttpGossipBuilder<MyApi> builder = new HttpGossipBuilder<MyApi>();
+JsonSerializerOptions options = new JsonSerializerOptions
+{
+    PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+};
+builder.Registrations.RequestAttributes.Add(new JsonRequestBodyRegistration(options));
+builder.Registrations.ResponseConstructors.Add(new JsonResponseConstructorRegistration(options));
+```
+

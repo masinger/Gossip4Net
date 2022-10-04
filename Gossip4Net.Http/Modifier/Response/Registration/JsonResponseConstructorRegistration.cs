@@ -3,7 +3,7 @@ using System.Text.Json;
 
 namespace Gossip4Net.Http.Modifier.Response.Registration
 {
-    internal class JsonResponseConstructorRegistration : IResponseConstructorRegistration
+    public class JsonResponseConstructorRegistration : IResponseConstructorRegistration
     {
         private readonly JsonSerializerOptions jsonSerializerOptions;
 

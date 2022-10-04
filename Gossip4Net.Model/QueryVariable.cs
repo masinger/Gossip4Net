@@ -6,5 +6,15 @@
         public string? Name { get; set; }
         public bool OmitEmpty { get; set; } = true;
         public bool EnumerateUsingMultipleParams { get; set; } = true;
+
+        public QueryVariable()
+        {
+        }
+
+        public QueryVariable(string name)
+        {
+            Name = name;
+        }
+
     }
 }

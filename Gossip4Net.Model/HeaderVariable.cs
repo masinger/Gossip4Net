@@ -5,5 +5,15 @@
     {
         public string? Name { get; set; }
         public bool OmitEmpty { get; set; } = true;
+
+        public HeaderVariable()
+        {
+        }
+
+        public HeaderVariable(string name)
+        {
+            Name = name;   
+        }
+
     }
 }
