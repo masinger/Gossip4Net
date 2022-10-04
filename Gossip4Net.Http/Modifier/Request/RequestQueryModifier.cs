@@ -10,10 +10,10 @@ namespace Gossip4Net.Http.Modifier.Request
     {
         private readonly Func<object?, string> valueConverter;
         private readonly IEnumerable<QueryVariable> queryVariables;
-        private readonly string defaultName;
+        private readonly string? defaultName;
         private readonly int argIndex;
 
-        public RequestQueryModifier(Func<object?, string> valueConverter, IEnumerable<QueryVariable> queryVariables, string defaultName, int argIndex)
+        public RequestQueryModifier(Func<object?, string> valueConverter, IEnumerable<QueryVariable> queryVariables, string? defaultName, int argIndex)
         {
             this.valueConverter = valueConverter;
             this.queryVariables = queryVariables;
@@ -25,7 +25,7 @@ namespace Gossip4Net.Http.Modifier.Request
         {
             if (requestMessage.RequestUri == null)
             {
-                throw new ArgumentException("The http request does not declare a request uri.");
+                throw new ArgumentException("The http request does not declare a request uri."); // TODO: Custom exception type?
             }
 
             object? arg = args[argIndex];
@@ -35,6 +35,8 @@ namespace Gossip4Net.Http.Modifier.Request
 
             foreach (QueryVariable queryVariable in queryVariables)
             {
+                string queryVariableName = (queryVariable.Name ?? defaultName) ?? throw new UnknownNameException($"Unable to determine the query parameter name for method param at index {argIndex}.");
+
                 if (queryVariable.OmitEmpty && arg == null)
                 {
                     continue;
@@ -43,12 +45,12 @@ namespace Gossip4Net.Http.Modifier.Request
                 {
                     foreach (var enumerableArg in enumberableArgs)
                     {
-                        currentQuery.Add(queryVariable.Name ?? defaultName, valueConverter(enumerableArg));
+                        currentQuery.Add(queryVariableName, valueConverter(enumerableArg));
                     }
                 }
                 else
                 {
-                    currentQuery.Set(queryVariable.Name ?? defaultName, unescapedArgValue);
+                    currentQuery.Set(queryVariableName, unescapedArgValue);
                 }
             }
 

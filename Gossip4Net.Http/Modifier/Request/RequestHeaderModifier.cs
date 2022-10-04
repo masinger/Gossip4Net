@@ -7,10 +7,10 @@ namespace Gossip4Net.Http.Modifier.Request
     {
         private readonly Func<object?, string> valueConverter;
         private readonly IEnumerable<HeaderVariable> headerVariables;
-        private readonly string defaultName;
+        private readonly string? defaultName;
         private readonly int argIndex;
 
-        public RequestHeaderModifier(Func<object?, string> valueConverter, IEnumerable<HeaderVariable> queryVariables, string defaultName, int argIndex)
+        public RequestHeaderModifier(Func<object?, string> valueConverter, IEnumerable<HeaderVariable> queryVariables, string? defaultName, int argIndex)
         {
             this.valueConverter = valueConverter;
             headerVariables = queryVariables;
@@ -29,7 +29,7 @@ namespace Gossip4Net.Http.Modifier.Request
                 {
                     continue;
                 }
-                requestMessage.Headers.Add(variable.Name ?? defaultName, unescapedArgValue);
+                requestMessage.Headers.Add((variable.Name ?? defaultName) ?? throw new UnknownNameException($"Unknown header name for method parameter at index {argIndex}."), unescapedArgValue);
             }
 
             return Task.FromResult(requestMessage);

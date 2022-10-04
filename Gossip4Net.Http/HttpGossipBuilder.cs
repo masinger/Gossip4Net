@@ -1,4 +1,5 @@
 ﻿using Gossip4Net.Http.Builder.Implementation;
+using Gossip4Net.Http.Builder.Request;
 using Gossip4Net.Http.Client;
 using Gossip4Net.Http.Modifier.Request;
 using Gossip4Net.Model;
@@ -36,7 +37,7 @@ namespace Gossip4Net.Http
 
             foreach (var method in t.GetMethods())
             {
-                KeyValuePair<ClientRegistration, RequestMethodImplementation> implementation = methodImplemantationBuilder.BuildImplementation(method);
+                KeyValuePair<ClientRegistration, RequestMethodImplementation> implementation = methodImplemantationBuilder.BuildImplementation(t, method);
                 registrations[implementation.Key] = implementation.Value;
             }
 

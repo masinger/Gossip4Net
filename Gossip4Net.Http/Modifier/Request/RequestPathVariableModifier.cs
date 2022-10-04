@@ -7,13 +7,13 @@ namespace Gossip4Net.Http.Modifier.Request
     {
         private readonly Func<object?, string> valueConverter;
         private readonly IEnumerable<PathVariable> pathVariables;
-        private readonly string defaultName;
+        private readonly string? defaultName;
         private readonly int argIndex;
 
         public RequestPathVariableModifier(
             Func<object?, string> valueConverter,
             IEnumerable<PathVariable> pathVariables,
-            string defaultName,
+            string? defaultName,
             int argIndex
         )
         {
@@ -38,7 +38,7 @@ namespace Gossip4Net.Http.Modifier.Request
 
             foreach (PathVariable pathVariable in pathVariables)
             {
-                string variableName = pathVariable.Name ?? defaultName;
+                string variableName = (pathVariable.Name ?? defaultName) ?? throw new UnknownNameException($"Unknown path variable name for parameter at index {argIndex}.");
                 string replacement = pathVariable.EscapePath ? escapedArgValue : unescapedArgValue;
 
                 currentUri = currentUri.Replace("{" + variableName + "}", replacement);

@@ -1,10 +1,10 @@
 ﻿using Gossip4Net.Http.Builder.Request;
+using Gossip4Net.Http.Builder.Request.Registrations;
 using Gossip4Net.Http.Builder.Response;
 using Gossip4Net.Http.Client;
 using Gossip4Net.Http.Modifier.Request;
 using Gossip4Net.Model;
 using Gossip4Net.Model.Mappings;
-using System.Net.Http.Json;
 using System.Reflection;
 using System.Text.Json;
 
@@ -13,11 +13,13 @@ namespace Gossip4Net.Http.Builder.Implementation
     internal class MethodImplemantationBuilder
     {
 
+        private static readonly Func<object?, string> DefaultValueConverter = o => "" + o;
 
         private readonly JsonSerializerOptions jsonSerializerOptions;
         private readonly ICollection<IHttpRequestModifier> globalRequestModifiers;
         private readonly Func<HttpClient> clientProvider;
-        private readonly Func<object?, string> valueConverter = o => "" + o; // TODO: Inject
+        private readonly IList<IRequestAttributeRegistration> requestAttributeRegistrations;
+
 
         public MethodImplemantationBuilder(
             JsonSerializerOptions jsonSerializerOptions,
@@ -28,10 +30,21 @@ namespace Gossip4Net.Http.Builder.Implementation
             this.jsonSerializerOptions = jsonSerializerOptions;
             this.globalRequestModifiers = globalRequestModifiers;
             this.clientProvider = clientProvider;
+            requestAttributeRegistrations = new List<IRequestAttributeRegistration>() // TODO: Inject
+            {
+                new PathVariableRegistration(DefaultValueConverter),
+                new QueryVariableRegistration(DefaultValueConverter),
+                new HeaderVariableRegistration(DefaultValueConverter),
+                new RequestBodyRegistration(jsonSerializerOptions),
+            };
         }
 
 
-        private IList<IHttpRequestModifier> BuildRequestModifiers(MethodInfo method, HttpMapping mapping)
+        private IList<IHttpRequestModifier> BuildRequestModifiers(
+            Type typeInfo,
+            MethodInfo method,
+            HttpMapping mapping
+        )
         {
             List<IHttpRequestModifier> requestModifiers = new List<IHttpRequestModifier>();
             requestModifiers.Add(new RequestMethodModifier(mapping.Method));
@@ -51,34 +64,19 @@ namespace Gossip4Net.Http.Builder.Implementation
             {
                 ParameterInfo parameterInfo = methodParams[i];
 
-                IList<PathVariable> pathVariables = parameterInfo.GetCustomAttributes<PathVariable>().ToList();
-                if (pathVariables.Count > 0)
-                {
-                    requestModifiers.Add(new RequestPathVariableModifier(valueConverter, pathVariables, parameterInfo.Name ?? "", i)); // TODO: Default name?
-                }
+                RequestParameterContext requestParameterContext = new RequestParameterContext(
+                    typeInfo,
+                    parameterInfo,
+                    i
+                );
 
-                IList<QueryVariable> queryVariables = parameterInfo.GetCustomAttributes<QueryVariable>().ToList();
-                if (queryVariables.Count > 0)
-                {
-                    requestModifiers.Add(new RequestQueryModifier(valueConverter, queryVariables, parameterInfo.Name ?? "", i)); // TODO: Default name?
-                }
-
-                IList<HeaderVariable> headerVariables = parameterInfo.GetCustomAttributes<HeaderVariable>().ToList();
-                if (headerVariables.Count > 0)
-                {
-                    requestModifiers.Add(new RequestHeaderModifier(valueConverter, headerVariables, parameterInfo.Name ?? "", i)); // TODO: Default name?
-                }
-
-                if (parameterInfo.CustomAttributes.Count() == 0)
-                {
-                    requestModifiers.Add(
-                        new RequestBodyModifier(
-                            i,
-                            o => Task.FromResult<HttpContent>(JsonContent.Create(o, parameterInfo.ParameterType, options: jsonSerializerOptions)),
-                            true
-                        )
-                    );
-                }
+                IList<Attribute> allAttributes = parameterInfo.GetCustomAttributes<Attribute>().ToList();
+                requestModifiers.AddRange(
+                    requestAttributeRegistrations
+                        .Select(r => r.ForParameter(requestParameterContext, allAttributes))
+                        .Where(it => it != null)
+                        .SelectMany(it => it!)
+                );
             }
 
 
@@ -86,7 +84,7 @@ namespace Gossip4Net.Http.Builder.Implementation
 
         }
 
-        public KeyValuePair<ClientRegistration, RequestMethodImplementation> BuildImplementation(MethodInfo method)
+        public KeyValuePair<ClientRegistration, RequestMethodImplementation> BuildImplementation(Type typeInfo, MethodInfo method)
         {
             HttpMapping? mapping = method.GetCustomAttributes().Where(a => a is HttpMapping).Select(a => (HttpMapping)a).SingleOrDefault();
             if (mapping == null)
@@ -99,7 +97,7 @@ namespace Gossip4Net.Http.Builder.Implementation
             ClientRegistration registration = new ClientRegistration(method.Name, parameters.Length);
 
 
-            IList<IHttpRequestModifier> requestModifiers = BuildRequestModifiers(method, mapping);
+            IList<IHttpRequestModifier> requestModifiers = BuildRequestModifiers(typeInfo, method, mapping);
 
             CombinedHttpRequestBuilder requestBuilder = new CombinedHttpRequestBuilder(globalRequestModifiers.Concat(requestModifiers).ToList());
             ResponseImplementationBuilder responseImplementationBuilder = new ResponseImplementationBuilder(jsonSerializerOptions);
