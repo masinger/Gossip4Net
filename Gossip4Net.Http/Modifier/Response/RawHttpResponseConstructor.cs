@@ -1,6 +1,4 @@
-﻿using Gossip4Net.Http.Modifier.Response;
-
-namespace Gossip4Net.Http.Builder.Response
+﻿namespace Gossip4Net.Http.Modifier.Response
 {
     internal class RawHttpResponseConstructor : IResponseConstructor<HttpResponseMessage>
     {
