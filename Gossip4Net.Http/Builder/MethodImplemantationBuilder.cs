@@ -15,7 +15,6 @@ namespace Gossip4Net.Http.Builder
         private readonly Func<HttpClient> clientProvider;
         private readonly Registrations registrations;
 
-
         public MethodImplemantationBuilder(
             Func<HttpClient> clientProvider,
             ICollection<IHttpRequestModifier> globalRequestModifiers,
@@ -26,77 +25,7 @@ namespace Gossip4Net.Http.Builder
             this.clientProvider = clientProvider;
             this.registrations = registrations;
         }
-
-
-        private IList<IHttpRequestModifier> BuildRequestModifiers(
-            RequestMethodContext requestMethodContext
-        )
-        {
-            List<IHttpRequestModifier> requestModifiers = new List<IHttpRequestModifier>();
-
-            IList<Attribute> allMethodAttributes = requestMethodContext.MethodInfo.GetCustomAttributes<Attribute>().ToList();
-            requestModifiers.AddRange(
-                registrations.RequestAttributes
-                    .Select(it => it.ForMethod(requestMethodContext, allMethodAttributes))
-                    .Where(it => it != null)
-                    .SelectMany(it => it!)
-            );
-
-            ParameterInfo[] methodParams = requestMethodContext.MethodInfo.GetParameters();
-            for (int paremeterIndex = 0; paremeterIndex < methodParams.Length; paremeterIndex++)
-            {
-                ParameterInfo parameterInfo = methodParams[paremeterIndex];
-
-                RequestParameterContext requestParameterContext = new RequestParameterContext(
-                    requestMethodContext,
-                    parameterInfo,
-                    paremeterIndex
-                );
-
-                IList<Attribute> allParameterAttributes = parameterInfo.GetCustomAttributes<Attribute>().ToList();
-                requestModifiers.AddRange(
-                    registrations.RequestAttributes
-                        .Select(r => r.ForParameter(requestParameterContext, allParameterAttributes))
-                        .Where(it => it != null)
-                        .SelectMany(it => it!)
-                );
-            }
-
-            return requestModifiers;
-        }
-
-        private PerformRequestDelegate BuildRequestDelegate(RequestMethodContext requestMethodContext)
-        {
-            HttpMapping? mapping = requestMethodContext.MethodInfo.GetCustomAttributes().Where(a => a is HttpMapping).Select(a => (HttpMapping)a).SingleOrDefault();
-            if (mapping == null)
-            {
-                throw new ArgumentException($"No mapping specified for method '{requestMethodContext.MethodInfo}'.", nameof(requestMethodContext));
-            }
-
-            IList<IHttpRequestModifier> requestModifiers = BuildRequestModifiers(requestMethodContext);
-            CombinedHttpRequestBuilder requestBuilder = new CombinedHttpRequestBuilder(globalRequestModifiers.Concat(requestModifiers).ToList());
-
-            ResponseImplementationBuilder responseImplementationBuilder = new ResponseImplementationBuilder(registrations.ResponseAttributes, registrations.ResponseConstructors);
-            IResponseConstructor responseBuilder = responseImplementationBuilder.CreateResponseBuilder(requestMethodContext.MethodInfo);
-
-            return async (args) =>
-            {
-                HttpRequestMessage request = await requestBuilder.CreateRequestAsync(args);
-
-                using (HttpClient client = clientProvider())
-                {
-                    HttpResponseMessage response = await client.SendAsync(request);
-                    ConstructedResponse constructedResponse = await responseBuilder.ConstructResponseAsync(response);
-                    if (constructedResponse.IsEmpty)
-                    {
-                        throw new Exception("There has been no response constructor that was able to process the received response."); // TODO: Custom exception type
-                    }
-                    return constructedResponse.Response;
-                }
-            };
-
-        }
-
+      
         public KeyValuePair<MethodSignature, RequestMethodImplementation> BuildImplementation(RequestMethodContext requestMethodContext)
         {
             PerformRequestDelegate asyncImplementation = BuildRequestDelegate(requestMethodContext);
@@ -136,5 +65,95 @@ namespace Gossip4Net.Http.Builder
             );
         }
 
+        private IList<IHttpRequestModifier> BuildRequestModifiers(
+          RequestMethodContext requestMethodContext
+        )
+        {
+            List<IHttpRequestModifier> requestModifiers = new List<IHttpRequestModifier>();
+
+            IList<Attribute> allMethodAttributes = requestMethodContext.MethodInfo.GetCustomAttributes<Attribute>().ToList();
+            requestModifiers.AddRange(
+                registrations.RequestAttributes
+                    .Select(it => it.ForMethod(requestMethodContext, allMethodAttributes))
+                    .Where(it => it != null)
+                    .SelectMany(it => it!)
+            );
+
+            ParameterInfo[] methodParams = requestMethodContext.MethodInfo.GetParameters();
+            for (int paremeterIndex = 0; paremeterIndex < methodParams.Length; paremeterIndex++)
+            {
+                ParameterInfo parameterInfo = methodParams[paremeterIndex];
+
+                RequestParameterContext requestParameterContext = new RequestParameterContext(
+                    requestMethodContext,
+                    parameterInfo,
+                    paremeterIndex
+                );
+
+                IList<Attribute> allParameterAttributes = parameterInfo.GetCustomAttributes<Attribute>().ToList();
+                requestModifiers.AddRange(
+                    registrations.RequestAttributes
+                        .Select(r => r.ForParameter(requestParameterContext, allParameterAttributes))
+                        .Where(it => it != null)
+                        .SelectMany(it => it!)
+                );
+            }
+
+            return requestModifiers;
+        }
+
+        private IResponseConstructor CreateResponseBuilder(MethodInfo method)
+        {
+            Type returnType = method.ReturnType.TaskResultType() ?? method.ReturnType;
+            ResponseMethodContext responseMethodContext = new ResponseMethodContext(returnType, method);
+
+            IList<Attribute> allMethodAttributes = method.GetCustomAttributes<Attribute>().ToList();
+            List<IHttpResponseModifier> responseModifiers = registrations.ResponseAttributes
+                    .Select(it => it.ForMethod(responseMethodContext, allMethodAttributes))
+                    .Where(it => it != null)
+                    .SelectMany(it => it!)
+            .ToList();
+
+            List<IResponseConstructor> responseConstructors = registrations.ResponseConstructors
+                    .Select(it => it.ForMethod(responseMethodContext))
+                    .Where(it => it != null)
+                    .SelectMany(it => it!)
+                    .ToList();
+
+            return new CombinedResponseConstructor(
+                responseModifiers,
+                responseConstructors
+            );
+        }
+
+        private PerformRequestDelegate BuildRequestDelegate(RequestMethodContext requestMethodContext)
+        {
+            HttpMapping? mapping = requestMethodContext.MethodInfo.GetCustomAttributes().Where(a => a is HttpMapping).Select(a => (HttpMapping)a).SingleOrDefault();
+            if (mapping == null)
+            {
+                throw new ArgumentException($"No mapping specified for method '{requestMethodContext.MethodInfo}'.", nameof(requestMethodContext));
+            }
+
+            IList<IHttpRequestModifier> requestModifiers = BuildRequestModifiers(requestMethodContext);
+            CombinedHttpRequestBuilder requestBuilder = new CombinedHttpRequestBuilder(globalRequestModifiers.Concat(requestModifiers).ToList());
+
+            IResponseConstructor responseConstructor = CreateResponseBuilder(requestMethodContext.MethodInfo);
+            return async (args) =>
+            {
+                HttpRequestMessage request = await requestBuilder.CreateRequestAsync(args);
+
+                using (HttpClient client = clientProvider())
+                {
+                    HttpResponseMessage response = await client.SendAsync(request);
+                    ConstructedResponse constructedResponse = await responseConstructor.ConstructResponseAsync(response);
+                    if (constructedResponse.IsEmpty)
+                    {
+                        throw new Exception("There has been no response constructor that was able to process the received response."); // TODO: Custom exception type
+                    }
+                    return constructedResponse.Response;
+                }
+            };
+
+        }
     }
 }
