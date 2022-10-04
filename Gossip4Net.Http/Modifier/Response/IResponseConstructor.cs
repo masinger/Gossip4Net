@@ -2,11 +2,11 @@
 {
     public interface IResponseConstructor
     {
-        Task<object?> ConstructResponseAsync(HttpResponseMessage response);
+        public Task<ConstructedResponse> ConstructResponseAsync(HttpResponseMessage response);
     }
 
     public interface IResponseConstructor<T> : IResponseConstructor
     {
-        new Task<T> ConstructResponseAsync(HttpResponseMessage responseMessage);
+        public Task<ConstructedResponse<T>> ConstructResponseAsync(HttpResponseMessage responseMessage);
     }
 }

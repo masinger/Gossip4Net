@@ -6,35 +6,33 @@ using Gossip4Net.Http.Modifier.Response;
 using Gossip4Net.Http.Modifier.Response.Registration;
 using Gossip4Net.Model.Mappings;
 using System.Reflection;
-using System.Text.Json;
 
 namespace Gossip4Net.Http.Builder
 {
     internal class MethodImplemantationBuilder
     {
-
         private delegate Task<object?> PerformRequestDelegate(object?[] arguments);
 
-        private readonly JsonSerializerOptions jsonSerializerOptions;
         private readonly ICollection<IHttpRequestModifier> globalRequestModifiers;
         private readonly Func<HttpClient> clientProvider;
         private readonly IList<IRequestAttributeRegistration> requestAttributeRegistrations;
         private readonly IList<IResponseAttributeRegistration> responseAttributeRegistrations;
+        private readonly IList<IResponseConstructorRegistration> responseConstructorRegistrations;
 
 
         public MethodImplemantationBuilder(
-            JsonSerializerOptions jsonSerializerOptions,
-            ICollection<IHttpRequestModifier> globalRequestModifiers,
             Func<HttpClient> clientProvider,
+            ICollection<IHttpRequestModifier> globalRequestModifiers,
             IList<IRequestAttributeRegistration> requestAttributeRegistrations,
-            IList<IResponseAttributeRegistration> responseAttributeRegistrations
+            IList<IResponseAttributeRegistration> responseAttributeRegistrations,
+            IList<IResponseConstructorRegistration> responseConstructorRegistrations // TODO: Add encapsulating model
         )
         {
-            this.jsonSerializerOptions = jsonSerializerOptions;
             this.globalRequestModifiers = globalRequestModifiers;
             this.clientProvider = clientProvider;
             this.requestAttributeRegistrations = requestAttributeRegistrations;
             this.responseAttributeRegistrations = responseAttributeRegistrations;
+            this.responseConstructorRegistrations = responseConstructorRegistrations;
         }
 
 
@@ -86,7 +84,7 @@ namespace Gossip4Net.Http.Builder
             IList<IHttpRequestModifier> requestModifiers = BuildRequestModifiers(requestMethodContext);
             CombinedHttpRequestBuilder requestBuilder = new CombinedHttpRequestBuilder(globalRequestModifiers.Concat(requestModifiers).ToList());
 
-            ResponseImplementationBuilder responseImplementationBuilder = new ResponseImplementationBuilder(jsonSerializerOptions, responseAttributeRegistrations);
+            ResponseImplementationBuilder responseImplementationBuilder = new ResponseImplementationBuilder(responseAttributeRegistrations, responseConstructorRegistrations);
             IResponseConstructor responseBuilder = responseImplementationBuilder.CreateResponseBuilder(requestMethodContext.MethodInfo);
 
             return async (args) =>
@@ -96,8 +94,12 @@ namespace Gossip4Net.Http.Builder
                 using (HttpClient client = clientProvider())
                 {
                     HttpResponseMessage response = await client.SendAsync(request);
-                    object? result = await responseBuilder.ConstructResponseAsync(response);
-                    return result;
+                    ConstructedResponse constructedResponse = await responseBuilder.ConstructResponseAsync(response);
+                    if (constructedResponse.IsEmpty)
+                    {
+                        throw new Exception("There has been no response constructor that was able to process the received response."); // TODO: Custom exception type
+                    }
+                    return constructedResponse.Response;
                 }
             };
 

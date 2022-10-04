@@ -49,17 +49,23 @@ namespace Gossip4Net.Http
                 new RequestBodyRegistration(JsonOptions),
             };
 
+            IList<IResponseConstructorRegistration> responseConstructorRegistrations = new List<IResponseConstructorRegistration>()
+            {
+                new RawResponseConstructorRegistration(),
+                new JsonResponseConstructorRegistration(JsonOptions)
+            };
+
             IList<IResponseAttributeRegistration> responseAttributeRegistrations = new List<IResponseAttributeRegistration>() // TODO: Inject
             {
                 new ResponseSuccessRegistration()
             };
 
             MethodImplemantationBuilder methodImplemantationBuilder = new MethodImplemantationBuilder(
-                JsonOptions,
-                globalRequestModifiers,
                 ClientProvider,
+                globalRequestModifiers,
                 requestAttributeRegistrations,
-                responseAttributeRegistrations
+                responseAttributeRegistrations,
+                responseConstructorRegistrations
             );
 
             foreach (MethodInfo method in t.GetMethods())

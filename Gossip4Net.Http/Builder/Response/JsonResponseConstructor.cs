@@ -18,9 +18,9 @@ namespace Gossip4Net.Http.Builder.Response
             this.jsonSerializerOptions = jsonSerializerOptions;
         }
 
-        public async Task<object?> ConstructResponseAsync(HttpResponseMessage response)
+        public async Task<ConstructedResponse> ConstructResponseAsync(HttpResponseMessage response)
         {
-            return await response.Content.ReadFromJsonAsync(targetType, jsonSerializerOptions);
+            return new ConstructedResponse(await response.Content.ReadFromJsonAsync(targetType, jsonSerializerOptions));
         }
     }
 }
