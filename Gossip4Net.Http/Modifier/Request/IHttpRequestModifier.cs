@@ -1,4 +1,4 @@
-﻿namespace Gossip4Net.Http.Builder.Request
+﻿namespace Gossip4Net.Http.Modifier.Request
 {
     public interface IHttpRequestModifier
     {

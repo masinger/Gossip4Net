@@ -2,7 +2,6 @@
 using System.Web;
 using System.Collections.Specialized;
 using System.Collections;
-using Gossip4Net.Http.Builder.Request;
 
 namespace Gossip4Net.Http.Modifier.Request
 {
