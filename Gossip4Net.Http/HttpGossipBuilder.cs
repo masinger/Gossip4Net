@@ -50,9 +50,10 @@ namespace Gossip4Net.Http
 
             MethodImplemantationBuilder methodImplemantationBuilder = new MethodImplemantationBuilder(JsonOptions, globalRequestModifiers, ClientProvider, requestAttributeRegistrations);
 
-            foreach (var method in t.GetMethods())
+            foreach (MethodInfo method in t.GetMethods())
             {
-                KeyValuePair<ClientRegistration, RequestMethodImplementation> implementation = methodImplemantationBuilder.BuildImplementation(t, method);
+                RequestMethodContext requestMethodContext = new RequestMethodContext(t, method);
+                KeyValuePair<ClientRegistration, RequestMethodImplementation> implementation = methodImplemantationBuilder.BuildImplementation(requestMethodContext);
                 registrations[implementation.Key] = implementation.Value;
             }
 

@@ -1,5 +1,4 @@
 ﻿using Gossip4Net.Http.Builder.Request;
-using Gossip4Net.Http.Builder.Request.Registrations;
 using Gossip4Net.Http.Builder.Response;
 using Gossip4Net.Http.Client;
 using Gossip4Net.Model.Mappings;
@@ -34,17 +33,12 @@ namespace Gossip4Net.Http.Builder.Implementation
 
 
         private IList<IHttpRequestModifier> BuildRequestModifiers(
-            Type typeInfo,
-            MethodInfo method
+            RequestMethodContext requestMethodContext
         )
         {
-            RequestMethodContext requestMethodContext = new RequestMethodContext(
-                typeInfo,
-                method
-            );
             List<IHttpRequestModifier> requestModifiers = new List<IHttpRequestModifier>();
 
-            IList<Attribute> allMethodAttributes = method.GetCustomAttributes<Attribute>().ToList();
+            IList<Attribute> allMethodAttributes = requestMethodContext.MethodInfo.GetCustomAttributes<Attribute>().ToList();
             requestModifiers.AddRange(
                 requestAttributeRegistrations
                     .Select(it => it.ForMethod(requestMethodContext, allMethodAttributes))
@@ -52,7 +46,7 @@ namespace Gossip4Net.Http.Builder.Implementation
                     .SelectMany(it => it!)
             );
 
-            ParameterInfo[] methodParams = method.GetParameters();
+            ParameterInfo[] methodParams = requestMethodContext.MethodInfo.GetParameters();
             for (int paremeterIndex = 0; paremeterIndex < methodParams.Length; paremeterIndex++)
             {
                 ParameterInfo parameterInfo = methodParams[paremeterIndex];
@@ -75,37 +69,40 @@ namespace Gossip4Net.Http.Builder.Implementation
             return requestModifiers;
         }
 
-        public KeyValuePair<ClientRegistration, RequestMethodImplementation> BuildImplementation(Type typeInfo, MethodInfo method)
+        private PerformRequestDelegate BuildRequestDelegate(RequestMethodContext requestMethodContext)
         {
-            HttpMapping? mapping = method.GetCustomAttributes().Where(a => a is HttpMapping).Select(a => (HttpMapping)a).SingleOrDefault();
+            HttpMapping? mapping = requestMethodContext.MethodInfo.GetCustomAttributes().Where(a => a is HttpMapping).Select(a => (HttpMapping)a).SingleOrDefault();
             if (mapping == null)
             {
-                throw new ArgumentException("No mapping specified for method.", nameof(method));
+                throw new ArgumentException($"No mapping specified for method '{requestMethodContext.MethodInfo}'.", nameof(requestMethodContext));
             }
 
-            ParameterInfo[] parameters = method.GetParameters();
-            Type returnType = method.ReturnType;
-            ClientRegistration registration = new ClientRegistration(method.Name, parameters.Length);
-
-            IList<IHttpRequestModifier> requestModifiers = BuildRequestModifiers(typeInfo, method);
+            IList<IHttpRequestModifier> requestModifiers = BuildRequestModifiers(requestMethodContext);
             CombinedHttpRequestBuilder requestBuilder = new CombinedHttpRequestBuilder(globalRequestModifiers.Concat(requestModifiers).ToList());
-            
+
             ResponseImplementationBuilder responseImplementationBuilder = new ResponseImplementationBuilder(jsonSerializerOptions);
-            IResponseBuilder responseBuilder = responseImplementationBuilder.CreateResponseBuilder(method);
+            IResponseBuilder responseBuilder = responseImplementationBuilder.CreateResponseBuilder(requestMethodContext.MethodInfo);
 
-            RequestMethodImplementation requestMethodImplementation;
-
-            PerformRequestDelegate asyncImplementation = async (object?[] args) =>
+            return async (object?[] args) =>
             {
                 HttpRequestMessage request = await requestBuilder.CreateRequestAsync(args);
 
                 using (HttpClient client = clientProvider())
                 {
-                    var response = await client.SendAsync(request);
-                    var result = await responseBuilder.ConstructResponseAsync(response);
+                    HttpResponseMessage response = await client.SendAsync(request);
+                    object? result = await responseBuilder.ConstructResponseAsync(response);
                     return result;
                 }
             };
+
+        }
+
+        public KeyValuePair<ClientRegistration, RequestMethodImplementation> BuildImplementation(RequestMethodContext requestMethodContext)
+        {
+            PerformRequestDelegate asyncImplementation = BuildRequestDelegate(requestMethodContext);
+            
+            RequestMethodImplementation requestMethodImplementation;
+            Type returnType = requestMethodContext.MethodInfo.ReturnType;
 
             if (returnType.IsAssignableTo(typeof(Task)))
             {
@@ -128,6 +125,10 @@ namespace Gossip4Net.Http.Builder.Implementation
                 };
             }
 
+            ClientRegistration registration = new ClientRegistration(
+                requestMethodContext.MethodInfo.Name,
+                requestMethodContext.MethodInfo.GetParameters().Length
+            );
 
             return new KeyValuePair<ClientRegistration, RequestMethodImplementation>(
                    registration,
