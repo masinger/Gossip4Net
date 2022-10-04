@@ -6,16 +6,16 @@ namespace Gossip4Net.Http.Client
 
     internal class GossipHttpClient : DynamicObject
     {
-        private readonly IDictionary<ClientRegistration, RequestMethodImplementation> registrations;
+        private readonly IDictionary<MethodSignature, RequestMethodImplementation> registrations;
 
-        public GossipHttpClient(IDictionary<ClientRegistration, RequestMethodImplementation> registrations)
+        public GossipHttpClient(IDictionary<MethodSignature, RequestMethodImplementation> registrations)
         {
             this.registrations = registrations;
         }
 
         public override bool TryInvokeMember(InvokeMemberBinder binder, object?[]? args, out object? result)
         {
-            ClientRegistration registration = new ClientRegistration(binder.Name, binder.CallInfo.ArgumentCount);
+            MethodSignature registration = new MethodSignature(binder.Name, binder.CallInfo.ArgumentCount);
             if (!registrations.ContainsKey(registration))
             {
                 result = null;

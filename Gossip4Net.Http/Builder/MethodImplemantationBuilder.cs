@@ -1,9 +1,7 @@
 ﻿using Gossip4Net.Http.Builder.Request;
 using Gossip4Net.Http.Builder.Response;
 using Gossip4Net.Http.Client;
-using Gossip4Net.Http.Modifier.Request.Registration;
 using Gossip4Net.Http.Modifier.Response;
-using Gossip4Net.Http.Modifier.Response.Registration;
 using Gossip4Net.Model.Mappings;
 using System.Reflection;
 
@@ -15,24 +13,18 @@ namespace Gossip4Net.Http.Builder
 
         private readonly ICollection<IHttpRequestModifier> globalRequestModifiers;
         private readonly Func<HttpClient> clientProvider;
-        private readonly IList<IRequestAttributeRegistration> requestAttributeRegistrations;
-        private readonly IList<IResponseAttributeRegistration> responseAttributeRegistrations;
-        private readonly IList<IResponseConstructorRegistration> responseConstructorRegistrations;
+        private readonly Registrations registrations;
 
 
         public MethodImplemantationBuilder(
             Func<HttpClient> clientProvider,
             ICollection<IHttpRequestModifier> globalRequestModifiers,
-            IList<IRequestAttributeRegistration> requestAttributeRegistrations,
-            IList<IResponseAttributeRegistration> responseAttributeRegistrations,
-            IList<IResponseConstructorRegistration> responseConstructorRegistrations // TODO: Add encapsulating model
+            Registrations registrations
         )
         {
             this.globalRequestModifiers = globalRequestModifiers;
             this.clientProvider = clientProvider;
-            this.requestAttributeRegistrations = requestAttributeRegistrations;
-            this.responseAttributeRegistrations = responseAttributeRegistrations;
-            this.responseConstructorRegistrations = responseConstructorRegistrations;
+            this.registrations = registrations;
         }
 
 
@@ -44,7 +36,7 @@ namespace Gossip4Net.Http.Builder
 
             IList<Attribute> allMethodAttributes = requestMethodContext.MethodInfo.GetCustomAttributes<Attribute>().ToList();
             requestModifiers.AddRange(
-                requestAttributeRegistrations
+                registrations.RequestAttributes
                     .Select(it => it.ForMethod(requestMethodContext, allMethodAttributes))
                     .Where(it => it != null)
                     .SelectMany(it => it!)
@@ -63,7 +55,7 @@ namespace Gossip4Net.Http.Builder
 
                 IList<Attribute> allParameterAttributes = parameterInfo.GetCustomAttributes<Attribute>().ToList();
                 requestModifiers.AddRange(
-                    requestAttributeRegistrations
+                    registrations.RequestAttributes
                         .Select(r => r.ForParameter(requestParameterContext, allParameterAttributes))
                         .Where(it => it != null)
                         .SelectMany(it => it!)
@@ -84,7 +76,7 @@ namespace Gossip4Net.Http.Builder
             IList<IHttpRequestModifier> requestModifiers = BuildRequestModifiers(requestMethodContext);
             CombinedHttpRequestBuilder requestBuilder = new CombinedHttpRequestBuilder(globalRequestModifiers.Concat(requestModifiers).ToList());
 
-            ResponseImplementationBuilder responseImplementationBuilder = new ResponseImplementationBuilder(responseAttributeRegistrations, responseConstructorRegistrations);
+            ResponseImplementationBuilder responseImplementationBuilder = new ResponseImplementationBuilder(registrations.ResponseAttributes, registrations.ResponseConstructors);
             IResponseConstructor responseBuilder = responseImplementationBuilder.CreateResponseBuilder(requestMethodContext.MethodInfo);
 
             return async (args) =>
@@ -105,7 +97,7 @@ namespace Gossip4Net.Http.Builder
 
         }
 
-        public KeyValuePair<ClientRegistration, RequestMethodImplementation> BuildImplementation(RequestMethodContext requestMethodContext)
+        public KeyValuePair<MethodSignature, RequestMethodImplementation> BuildImplementation(RequestMethodContext requestMethodContext)
         {
             PerformRequestDelegate asyncImplementation = BuildRequestDelegate(requestMethodContext);
 
@@ -133,12 +125,12 @@ namespace Gossip4Net.Http.Builder
                 };
             }
 
-            ClientRegistration registration = new ClientRegistration(
+            MethodSignature registration = new MethodSignature(
                 requestMethodContext.MethodInfo.Name,
                 requestMethodContext.MethodInfo.GetParameters().Length
             );
 
-            return new KeyValuePair<ClientRegistration, RequestMethodImplementation>(
+            return new KeyValuePair<MethodSignature, RequestMethodImplementation>(
                    registration,
                    requestMethodImplementation
             );

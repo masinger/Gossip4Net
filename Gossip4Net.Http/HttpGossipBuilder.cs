@@ -1,10 +1,8 @@
 ﻿using Gossip4Net.Http.Builder;
 using Gossip4Net.Http.Builder.Request;
 using Gossip4Net.Http.Client;
-using Gossip4Net.Http.Modifier.Request;
 using Gossip4Net.Http.Modifier.Request.Registration;
 using Gossip4Net.Http.Modifier.Response.Registration;
-using Gossip4Net.Model;
 using ImpromptuInterface;
 using System.Reflection;
 using System.Text.Json;
@@ -17,7 +15,6 @@ namespace Gossip4Net.Http
 
         public Func<HttpClient> ClientProvider { get; set; } = () => new HttpClient();
         public JsonSerializerOptions JsonOptions { get; set; } = new JsonSerializerOptions();
-
 
         public T Build()
         {
@@ -53,23 +50,23 @@ namespace Gossip4Net.Http
                 new ResponseSuccessRegistration()
             };
 
+            Registrations registrations = new Registrations(requestAttributeRegistrations, responseAttributeRegistrations, responseConstructorRegistrations);
+
             MethodImplemantationBuilder methodImplemantationBuilder = new MethodImplemantationBuilder(
                 ClientProvider,
                 globalRequestModifiers,
-                requestAttributeRegistrations,
-                responseAttributeRegistrations,
-                responseConstructorRegistrations
+                registrations
             );
 
-            IDictionary<ClientRegistration, RequestMethodImplementation> registrations = new Dictionary<ClientRegistration, RequestMethodImplementation>();
+            IDictionary<MethodSignature, RequestMethodImplementation> methodImplementations = new Dictionary<MethodSignature, RequestMethodImplementation>();
             foreach (MethodInfo method in t.GetMethods())
             {
                 RequestMethodContext requestMethodContext = new RequestMethodContext(requestTypeContext, method);
-                KeyValuePair<ClientRegistration, RequestMethodImplementation> implementation = methodImplemantationBuilder.BuildImplementation(requestMethodContext);
-                registrations[implementation.Key] = implementation.Value;
+                KeyValuePair<MethodSignature, RequestMethodImplementation> implementation = methodImplemantationBuilder.BuildImplementation(requestMethodContext);
+                methodImplementations[implementation.Key] = implementation.Value;
             }
 
-            GossipHttpClient gossipHttpClient = new GossipHttpClient(registrations);
+            GossipHttpClient gossipHttpClient = new GossipHttpClient(methodImplementations);
             return Impromptu.ActLike<T>(gossipHttpClient);
         }
     }

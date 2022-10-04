@@ -1,6 +1,6 @@
 ﻿namespace Gossip4Net.Http.Client
 {
-    internal record ClientRegistration(
+    internal record MethodSignature(
         string name,
         int parameters
     );
