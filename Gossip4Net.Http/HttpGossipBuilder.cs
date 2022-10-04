@@ -1,5 +1,6 @@
 ﻿using Gossip4Net.Http.Builder.Implementation;
 using Gossip4Net.Http.Builder.Request;
+using Gossip4Net.Http.Builder.Request.Registrations;
 using Gossip4Net.Http.Client;
 using Gossip4Net.Http.Modifier.Request;
 using Gossip4Net.Model;
@@ -11,8 +12,11 @@ namespace Gossip4Net.Http
 {
     public class HttpGossipBuilder<T> : IHttpGossipBuilder<T> where T:class
     {
+        private static readonly Func<object?, string> DefaultValueConverter = o => "" + o;
+
         public Func<HttpClient> ClientProvider { get; set; } = () => new HttpClient();
         public JsonSerializerOptions JsonOptions { get; set; } = new JsonSerializerOptions();
+
 
         public T Build()
         {
@@ -33,7 +37,18 @@ namespace Gossip4Net.Http
             }
 
             IDictionary<ClientRegistration, RequestMethodImplementation> registrations = new Dictionary<ClientRegistration, RequestMethodImplementation>();
-            MethodImplemantationBuilder methodImplemantationBuilder = new MethodImplemantationBuilder(JsonOptions, globalRequestModifiers, ClientProvider);
+
+            List<IRequestAttributeRegistration> requestAttributeRegistrations = new List<IRequestAttributeRegistration>() // TODO: Inject
+            {
+                new HttpMappingRegistration(),
+                new HeaderValueRegistration(),
+                new PathVariableRegistration(DefaultValueConverter),
+                new QueryVariableRegistration(DefaultValueConverter),
+                new HeaderVariableRegistration(DefaultValueConverter),
+                new RequestBodyRegistration(JsonOptions),
+            };
+
+            MethodImplemantationBuilder methodImplemantationBuilder = new MethodImplemantationBuilder(JsonOptions, globalRequestModifiers, ClientProvider, requestAttributeRegistrations);
 
             foreach (var method in t.GetMethods())
             {

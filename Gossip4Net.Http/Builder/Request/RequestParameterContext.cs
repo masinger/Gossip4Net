@@ -4,19 +4,19 @@ namespace Gossip4Net.Http.Builder.Request
 {
     public class RequestParameterContext
     {
-        public Type TypeInfo { get; }
+        public RequestMethodContext Method { get; set; }
         public ParameterInfo Parameter { get; }
         public int ParameterIndex { get; }
 
         public RequestParameterContext(
-            Type typeInfo,
+            RequestMethodContext method,
             ParameterInfo parameter,
             int parameterIndex
         )
         {
             Parameter = parameter;
             ParameterIndex = parameterIndex;
-            TypeInfo = typeInfo;
+            Method = method;
         }
     }
 }
