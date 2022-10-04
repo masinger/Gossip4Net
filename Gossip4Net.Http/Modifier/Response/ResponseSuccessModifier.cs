@@ -1,6 +1,6 @@
 ﻿namespace Gossip4Net.Http.Modifier.Response
 {
-    internal class ResponseSuccessModifier : IResponseModifier
+    internal class ResponseSuccessModifier : IHttpResponseModifier
     {
         public HttpResponseMessage Modify(HttpResponseMessage response)
         {

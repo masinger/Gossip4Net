@@ -3,6 +3,7 @@ using Gossip4Net.Http.Builder.Response;
 using Gossip4Net.Http.Client;
 using Gossip4Net.Http.Modifier.Request.Registration;
 using Gossip4Net.Http.Modifier.Response;
+using Gossip4Net.Http.Modifier.Response.Registration;
 using Gossip4Net.Model.Mappings;
 using System.Reflection;
 using System.Text.Json;
@@ -18,19 +19,22 @@ namespace Gossip4Net.Http.Builder
         private readonly ICollection<IHttpRequestModifier> globalRequestModifiers;
         private readonly Func<HttpClient> clientProvider;
         private readonly IList<IRequestAttributeRegistration> requestAttributeRegistrations;
+        private readonly IList<IResponseAttributeRegistration> responseAttributeRegistrations;
 
 
         public MethodImplemantationBuilder(
             JsonSerializerOptions jsonSerializerOptions,
             ICollection<IHttpRequestModifier> globalRequestModifiers,
             Func<HttpClient> clientProvider,
-            IList<IRequestAttributeRegistration> requestAttributeRegistrations
+            IList<IRequestAttributeRegistration> requestAttributeRegistrations,
+            IList<IResponseAttributeRegistration> responseAttributeRegistrations
         )
         {
             this.jsonSerializerOptions = jsonSerializerOptions;
             this.globalRequestModifiers = globalRequestModifiers;
             this.clientProvider = clientProvider;
             this.requestAttributeRegistrations = requestAttributeRegistrations;
+            this.responseAttributeRegistrations = responseAttributeRegistrations;
         }
 
 
@@ -82,7 +86,7 @@ namespace Gossip4Net.Http.Builder
             IList<IHttpRequestModifier> requestModifiers = BuildRequestModifiers(requestMethodContext);
             CombinedHttpRequestBuilder requestBuilder = new CombinedHttpRequestBuilder(globalRequestModifiers.Concat(requestModifiers).ToList());
 
-            ResponseImplementationBuilder responseImplementationBuilder = new ResponseImplementationBuilder(jsonSerializerOptions);
+            ResponseImplementationBuilder responseImplementationBuilder = new ResponseImplementationBuilder(jsonSerializerOptions, responseAttributeRegistrations);
             IResponseConstructor responseBuilder = responseImplementationBuilder.CreateResponseBuilder(requestMethodContext.MethodInfo);
 
             return async (args) =>

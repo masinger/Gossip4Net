@@ -3,6 +3,7 @@ using Gossip4Net.Http.Builder.Request;
 using Gossip4Net.Http.Client;
 using Gossip4Net.Http.Modifier.Request;
 using Gossip4Net.Http.Modifier.Request.Registration;
+using Gossip4Net.Http.Modifier.Response.Registration;
 using Gossip4Net.Model;
 using ImpromptuInterface;
 using System.Reflection;
@@ -38,7 +39,7 @@ namespace Gossip4Net.Http
 
             IDictionary<ClientRegistration, RequestMethodImplementation> registrations = new Dictionary<ClientRegistration, RequestMethodImplementation>();
 
-            List<IRequestAttributeRegistration> requestAttributeRegistrations = new List<IRequestAttributeRegistration>() // TODO: Inject
+            IList<IRequestAttributeRegistration> requestAttributeRegistrations = new List<IRequestAttributeRegistration>() // TODO: Inject
             {
                 new HttpMappingRegistration(),
                 new HeaderValueRegistration(),
@@ -48,7 +49,18 @@ namespace Gossip4Net.Http
                 new RequestBodyRegistration(JsonOptions),
             };
 
-            MethodImplemantationBuilder methodImplemantationBuilder = new MethodImplemantationBuilder(JsonOptions, globalRequestModifiers, ClientProvider, requestAttributeRegistrations);
+            IList<IResponseAttributeRegistration> responseAttributeRegistrations = new List<IResponseAttributeRegistration>() // TODO: Inject
+            {
+                new ResponseSuccessRegistration()
+            };
+
+            MethodImplemantationBuilder methodImplemantationBuilder = new MethodImplemantationBuilder(
+                JsonOptions,
+                globalRequestModifiers,
+                ClientProvider,
+                requestAttributeRegistrations,
+                responseAttributeRegistrations
+            );
 
             foreach (MethodInfo method in t.GetMethods())
             {

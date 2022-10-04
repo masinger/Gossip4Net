@@ -5,11 +5,11 @@ namespace Gossip4Net.Http.Builder.Response
     internal class CombinedResponseBuilder : IResponseConstructor
     {
 
-        private readonly IEnumerable<IResponseModifier> modifiers;
+        private readonly IEnumerable<IHttpResponseModifier> modifiers;
         private readonly IResponseConstructor responseBuilder;
 
         public CombinedResponseBuilder(
-            IEnumerable<IResponseModifier> modifiers,
+            IEnumerable<IHttpResponseModifier> modifiers,
             IResponseConstructor responseBuilder
         )
         {
