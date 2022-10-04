@@ -22,6 +22,11 @@ namespace Gossip4Net.Http.DependencyInjection
             {
                 httpConfig = (a, b) => { };
             }
+            if (gossipConfig == null)
+            {
+                gossipConfig = c => c.AddDefaultBehavior();
+            }
+
             string typeName = typeof(T).AssemblyQualifiedName!;
 
             return services
@@ -36,14 +41,10 @@ namespace Gossip4Net.Http.DependencyInjection
                         }
                     };
 
-                    if (gossipConfig != null)
-                    {
-                        gossipConfig(gossipBuilder);
-                    }
-
+                    gossipConfig(gossipBuilder);
                     return gossipBuilder;
                 })
-                .AddSingleton<T>(sp => sp.GetRequiredService<IHttpGossipBuilder<T>>().Build())
+                .AddSingleton(sp => sp.GetRequiredService<IHttpGossipBuilder<T>>().Build())
                 .AddHttpClient(typeName, httpConfig);
         }
     }

@@ -1,18 +1,17 @@
 using Gossip4Net.Http.Test.Clients;
 using Gossip4Net.Model;
 using FluentAssertions;
+using System.Text.Json;
 
 namespace Gossip4Net.Http.Test
 {
     public class HttpGossipBuilderTest
     {
-        private readonly IHttpBinClient client = new HttpGossipBuilder<IHttpBinClient>()
-        {
-            JsonOptions = new System.Text.Json.JsonSerializerOptions()
+        private readonly IHttpBinClient client = HttpGossipBuilder<IHttpBinClient>.NewDefaultBuilder(new JsonSerializerOptions()
             {
-                PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
             }
-        }.Build();
+        ).Build();
 
         [Fact]
         public void BuildShouldReturnAnInterfaceImplementation()

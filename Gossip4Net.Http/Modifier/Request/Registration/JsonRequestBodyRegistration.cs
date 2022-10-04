@@ -4,12 +4,12 @@ using System.Text.Json;
 
 namespace Gossip4Net.Http.Modifier.Request.Registration
 {
-    internal class RequestBodyRegistration : RequestAttributeRegistration<Attribute>
+    internal class JsonRequestBodyRegistration : RequestAttributeRegistration<Attribute>
     {
 
         private readonly JsonSerializerOptions jsonSerializerOptions;
 
-        public RequestBodyRegistration(JsonSerializerOptions jsonSerializerOptions)
+        public JsonRequestBodyRegistration(JsonSerializerOptions jsonSerializerOptions)
         {
             this.jsonSerializerOptions = jsonSerializerOptions;
         }
@@ -18,7 +18,7 @@ namespace Gossip4Net.Http.Modifier.Request.Registration
         {
             return new List<IHttpRequestModifier>()
             {
-                new RequestBodyModifier( // TODO: Allow customization
+                new RequestBodyModifier(
                     parameterContext.ParameterIndex,
                     o => Task.FromResult<HttpContent>(JsonContent.Create(o, parameterContext.Parameter.ParameterType, options: jsonSerializerOptions)),
                     true

@@ -56,10 +56,7 @@ namespace Gossip4Net.Http.Test
             services.AddSingleton(prov =>
             {
                 Func<HttpClient> clientProvider = () => prov.GetRequiredService<IHttpClientFactory>().CreateClient("demo");
-                return new HttpGossipBuilder<IDuendeDemo>()
-                {
-                    ClientProvider = clientProvider
-                }.Build();
+                return new HttpGossipBuilder<IDuendeDemo>() {  ClientProvider = clientProvider }.AddDefaultBehavior().Build();
             });
 
             ServiceProvider sp = services.BuildServiceProvider();
