@@ -131,7 +131,7 @@ namespace Gossip4Net.Http.Builder
             HttpMapping? mapping = requestMethodContext.MethodInfo.GetCustomAttributes().Where(a => a is HttpMapping).Select(a => (HttpMapping)a).SingleOrDefault();
             if (mapping == null)
             {
-                throw new ArgumentException($"No mapping specified for method '{requestMethodContext.MethodInfo}'.", nameof(requestMethodContext));
+                throw new ConfigurationException($"No mapping specified for method '{requestMethodContext.MethodInfo}'.");
             }
 
             IList<IHttpRequestModifier> requestModifiers = BuildRequestModifiers(requestMethodContext);
@@ -148,7 +148,7 @@ namespace Gossip4Net.Http.Builder
                     ConstructedResponse constructedResponse = await responseConstructor.ConstructResponseAsync(response);
                     if (constructedResponse.IsEmpty)
                     {
-                        throw new Exception("There has been no response constructor that was able to process the received response."); // TODO: Custom exception type
+                        throw new NoResponseCreatorException();
                     }
                     return constructedResponse.Response;
                 }

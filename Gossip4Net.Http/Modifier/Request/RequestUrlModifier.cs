@@ -27,7 +27,7 @@ namespace Gossip4Net.Http.Modifier.Request
                 return Task.FromResult(requestMessage);
             }
 
-            requestMessage.RequestUri = new Uri(currentUri, relativeUri ?? throw new ArgumentException($"Invalid uri '{url}'."));
+            requestMessage.RequestUri = new Uri(currentUri, relativeUri ?? throw new ConfigurationException($"Invalid uri '{url}'."));
             return Task.FromResult(requestMessage);
         }
     }

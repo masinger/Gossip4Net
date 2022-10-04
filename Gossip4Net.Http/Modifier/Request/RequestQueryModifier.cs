@@ -25,7 +25,7 @@ namespace Gossip4Net.Http.Modifier.Request
         {
             if (requestMessage.RequestUri == null)
             {
-                throw new ArgumentException("The http request does not declare a request uri."); // TODO: Custom exception type?
+                throw new ConfigurationException("The http request does not declare a request uri.");
             }
 
             object? arg = args[argIndex];
