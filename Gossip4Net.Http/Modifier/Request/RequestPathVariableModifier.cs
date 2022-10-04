@@ -1,5 +1,4 @@
-﻿using Gossip4Net.Http.Builder.Request;
-using Gossip4Net.Model;
+﻿using Gossip4Net.Model;
 
 namespace Gossip4Net.Http.Modifier.Request
 {

@@ -7,6 +7,14 @@ namespace Gossip4Net.Http.Test
 {
     public class HttpGossipBuilderTest
     {
+
+        public void Foo()
+        {
+            new HttpGossipBuilder<IHttpBinClient>().AddDefaultBehavior(new JsonSerializerOptions{
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+            });
+        }
+
         private readonly IHttpBinClient client = HttpGossipBuilder<IHttpBinClient>.NewDefaultBuilder(new JsonSerializerOptions()
             {
                 PropertyNamingPolicy = JsonNamingPolicy.CamelCase

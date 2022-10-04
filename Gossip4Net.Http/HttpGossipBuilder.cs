@@ -1,6 +1,7 @@
 ﻿using Gossip4Net.Http.Builder;
 using Gossip4Net.Http.Builder.Request;
 using Gossip4Net.Http.Client;
+using Gossip4Net.Http.Modifier.Request;
 using ImpromptuInterface;
 using System.Reflection;
 using System.Text.Json;

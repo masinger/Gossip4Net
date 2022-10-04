@@ -1,6 +1,4 @@
-﻿using Gossip4Net.Http.Builder.Request;
-
-namespace Gossip4Net.Http.Modifier.Request
+﻿namespace Gossip4Net.Http.Modifier.Request
 {
     internal class RequestMethodModifier : IHttpRequestModifier
     {
