@@ -1,5 +1,6 @@
 ﻿using System.Reflection;
 using System.Text.Json;
+using Gossip4Net.Http.Modifier.Response;
 
 namespace Gossip4Net.Http.Builder.Response
 {

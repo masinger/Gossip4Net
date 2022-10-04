@@ -1,4 +1,6 @@
-﻿namespace Gossip4Net.Http.Builder.Response
+﻿using Gossip4Net.Http.Modifier.Response;
+
+namespace Gossip4Net.Http.Builder.Response
 {
     internal class CombinedResponseBuilder : IResponseBuilder
     {

@@ -1,6 +1,7 @@
-﻿using Gossip4Net.Model;
+﻿using Gossip4Net.Http.Builder.Request;
+using Gossip4Net.Model;
 
-namespace Gossip4Net.Http.Builder.Request
+namespace Gossip4Net.Http.Modifier.Request
 {
     internal class RequestPathVariableModifier : IHttpRequestModifier
     {
@@ -40,7 +41,7 @@ namespace Gossip4Net.Http.Builder.Request
                 string variableName = pathVariable.Name ?? defaultName;
                 string replacement = pathVariable.EscapePath ? escapedArgValue : unescapedArgValue;
 
-               currentUri = currentUri.Replace("{" + variableName + "}", replacement);
+                currentUri = currentUri.Replace("{" + variableName + "}", replacement);
             }
 
             requestMessage.RequestUri = UriTools.ParseUri(currentUri);

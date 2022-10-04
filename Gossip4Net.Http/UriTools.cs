@@ -1,6 +1,6 @@
 ﻿using System.Collections.Specialized;
 
-namespace Gossip4Net.Http.Builder.Request
+namespace Gossip4Net.Http
 {
     internal static class UriTools
     {

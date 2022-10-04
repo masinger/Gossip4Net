@@ -2,8 +2,9 @@
 using System.Web;
 using System.Collections.Specialized;
 using System.Collections;
+using Gossip4Net.Http.Builder.Request;
 
-namespace Gossip4Net.Http.Builder.Request
+namespace Gossip4Net.Http.Modifier.Request
 {
     internal class RequestQueryModifier : IHttpRequestModifier
     {
@@ -31,7 +32,7 @@ namespace Gossip4Net.Http.Builder.Request
             string unescapedArgValue = valueConverter(arg);
 
             NameValueCollection currentQuery = HttpUtility.ParseQueryString(requestMessage.RequestUri.Query);
-           
+
             foreach (QueryVariable queryVariable in queryVariables)
             {
                 if (queryVariable.OmitEmpty && arg == null)

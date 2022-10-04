@@ -1,6 +1,7 @@
-﻿using Gossip4Net.Model;
+﻿using Gossip4Net.Http.Builder.Request;
+using Gossip4Net.Model;
 
-namespace Gossip4Net.Http.Builder.Request
+namespace Gossip4Net.Http.Modifier.Request
 {
     internal class RequestHeaderModifier : IHttpRequestModifier
     {
@@ -12,7 +13,7 @@ namespace Gossip4Net.Http.Builder.Request
         public RequestHeaderModifier(Func<object?, string> valueConverter, IEnumerable<HeaderVariable> queryVariables, string defaultName, int argIndex)
         {
             this.valueConverter = valueConverter;
-            this.headerVariables = queryVariables;
+            headerVariables = queryVariables;
             this.defaultName = defaultName;
             this.argIndex = argIndex;
         }

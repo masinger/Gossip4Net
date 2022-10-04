@@ -9,7 +9,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Gossip4Net.Http", "Gossip4N
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Gossip4Net.Http.Test", "Gossip4Net.Http.Test\Gossip4Net.Http.Test.csproj", "{741B789F-B817-42C2-B7C2-5380E3C9F017}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Gossip4Net.Http.DependencyInjection", "Gossip4Net.Http.DependencyInjection\Gossip4Net.Http.DependencyInjection.csproj", "{C86FE961-258A-4A72-93FC-092A8FD6B190}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Gossip4Net.Http.DependencyInjection", "Gossip4Net.Http.DependencyInjection\Gossip4Net.Http.DependencyInjection.csproj", "{C86FE961-258A-4A72-93FC-092A8FD6B190}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{E30B4806-5C15-4D5A-A52D-78572F6D6EE3}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -36,6 +38,9 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{741B789F-B817-42C2-B7C2-5380E3C9F017} = {E30B4806-5C15-4D5A-A52D-78572F6D6EE3}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {80607ECA-0D46-4009-8EA4-0C917344B509}
