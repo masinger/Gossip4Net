@@ -1,12 +1,13 @@
 ﻿using Gossip4Net.Http.Builder.Request;
 using Gossip4Net.Http.Builder.Response;
 using Gossip4Net.Http.Client;
-using Gossip4Net.Http.Modifier.Request.Registrations;
+using Gossip4Net.Http.Modifier.Request.Registration;
+using Gossip4Net.Http.Modifier.Response;
 using Gossip4Net.Model.Mappings;
 using System.Reflection;
 using System.Text.Json;
 
-namespace Gossip4Net.Http.Builder.Implementation
+namespace Gossip4Net.Http.Builder
 {
     internal class MethodImplemantationBuilder
     {
@@ -82,9 +83,9 @@ namespace Gossip4Net.Http.Builder.Implementation
             CombinedHttpRequestBuilder requestBuilder = new CombinedHttpRequestBuilder(globalRequestModifiers.Concat(requestModifiers).ToList());
 
             ResponseImplementationBuilder responseImplementationBuilder = new ResponseImplementationBuilder(jsonSerializerOptions);
-            IResponseBuilder responseBuilder = responseImplementationBuilder.CreateResponseBuilder(requestMethodContext.MethodInfo);
+            IResponseConstructor responseBuilder = responseImplementationBuilder.CreateResponseBuilder(requestMethodContext.MethodInfo);
 
-            return async (object?[] args) =>
+            return async (args) =>
             {
                 HttpRequestMessage request = await requestBuilder.CreateRequestAsync(args);
 
@@ -101,7 +102,7 @@ namespace Gossip4Net.Http.Builder.Implementation
         public KeyValuePair<ClientRegistration, RequestMethodImplementation> BuildImplementation(RequestMethodContext requestMethodContext)
         {
             PerformRequestDelegate asyncImplementation = BuildRequestDelegate(requestMethodContext);
-            
+
             RequestMethodImplementation requestMethodImplementation;
             Type returnType = requestMethodContext.MethodInfo.ReturnType;
 
@@ -113,14 +114,14 @@ namespace Gossip4Net.Http.Builder.Implementation
                     Type genericTaskType = returnType.GenericTypeArguments[0];
                     castToReturn = t => t.WithType(genericTaskType);
                 }
-                requestMethodImplementation = (object?[] args) =>
+                requestMethodImplementation = (args) =>
                 {
                     return castToReturn(asyncImplementation(args));
                 };
             }
             else
             {
-                requestMethodImplementation = (object?[] args) =>
+                requestMethodImplementation = (args) =>
                 {
                     return asyncImplementation(args).GetAwaiter().GetResult();
                 };

@@ -2,7 +2,7 @@
 using System.Net.Http.Json;
 using System.Text.Json;
 
-namespace Gossip4Net.Http.Modifier.Request.Registrations
+namespace Gossip4Net.Http.Modifier.Request.Registration
 {
     internal class RequestBodyRegistration : RequestAttributeRegistration<Attribute>
     {

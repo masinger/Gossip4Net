@@ -2,15 +2,15 @@
 
 namespace Gossip4Net.Http.Builder.Response
 {
-    internal class CombinedResponseBuilder : IResponseBuilder
+    internal class CombinedResponseBuilder : IResponseConstructor
     {
 
         private readonly IEnumerable<IResponseModifier> modifiers;
-        private readonly IResponseBuilder responseBuilder;
+        private readonly IResponseConstructor responseBuilder;
 
         public CombinedResponseBuilder(
             IEnumerable<IResponseModifier> modifiers,
-            IResponseBuilder responseBuilder
+            IResponseConstructor responseBuilder
         )
         {
             this.modifiers = modifiers;
@@ -18,7 +18,7 @@ namespace Gossip4Net.Http.Builder.Response
         }
 
 
-        async Task<object?> IResponseBuilder.ConstructResponseAsync(HttpResponseMessage response)
+        async Task<object?> IResponseConstructor.ConstructResponseAsync(HttpResponseMessage response)
         {
             HttpResponseMessage modifiedMessage = response;
             foreach (var modifier in modifiers)

@@ -1,8 +1,7 @@
 ﻿using Gossip4Net.Http.Builder.Request;
-using Gossip4Net.Http.Modifier.Request;
 using Gossip4Net.Model;
 
-namespace Gossip4Net.Http.Modifier.Request.Registrations
+namespace Gossip4Net.Http.Modifier.Request.Registration
 {
     internal class HeaderValueRegistration : RequestAttributeRegistration<HeaderValue>
     {

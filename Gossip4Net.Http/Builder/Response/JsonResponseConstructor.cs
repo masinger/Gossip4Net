@@ -1,14 +1,15 @@
 ﻿using System.Net.Http.Json;
 using System.Text.Json;
+using Gossip4Net.Http.Modifier.Response;
 
 namespace Gossip4Net.Http.Builder.Response
 {
-    internal class JsonResponseBuilder : IResponseBuilder
+    internal class JsonResponseConstructor : IResponseConstructor
     {
         private readonly Type targetType;
         private readonly JsonSerializerOptions jsonSerializerOptions;
 
-        public JsonResponseBuilder(
+        public JsonResponseConstructor(
             Type targetType,
             JsonSerializerOptions jsonSerializerOptions
         )

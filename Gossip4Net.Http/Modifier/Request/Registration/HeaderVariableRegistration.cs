@@ -1,13 +1,7 @@
 ﻿using Gossip4Net.Http.Builder.Request;
-using Gossip4Net.Http.Modifier.Request;
 using Gossip4Net.Model;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace Gossip4Net.Http.Modifier.Request.Registrations
+namespace Gossip4Net.Http.Modifier.Request.Registration
 {
     internal class HeaderVariableRegistration : RequestAttributeRegistration<HeaderVariable>
     {

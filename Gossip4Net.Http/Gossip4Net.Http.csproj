@@ -15,4 +15,8 @@
     <ProjectReference Include="..\Gossip4Net.Model\Gossip4Net.Model.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Modifier\Response\Registration\" />
+  </ItemGroup>
+
 </Project>

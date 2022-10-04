@@ -13,7 +13,7 @@ namespace Gossip4Net.Http.Builder.Response
             this.jsonSerializerOptions = jsonSerializerOptions;
         }
 
-        public IResponseBuilder CreateResponseBuilder(MethodInfo method)
+        public IResponseConstructor CreateResponseBuilder(MethodInfo method)
         {
             List<IResponseModifier> responseModifiers = new List<IResponseModifier>();
             responseModifiers.Add(new ResponseSuccessModifier());
@@ -23,10 +23,10 @@ namespace Gossip4Net.Http.Builder.Response
 
             if (returnType.IsAssignableFrom(typeof(HttpResponseMessage)) || returnType.Equals(typeof(void)) || returnType.IsVoidTask())
             {
-                return new CombinedResponseBuilder(responseModifiers, new NopResponseBuilder());
+                return new CombinedResponseBuilder(responseModifiers, new NopResponseConstructor());
             }
 
-            JsonResponseBuilder jsonResponseBuilder = new JsonResponseBuilder(returnType, jsonSerializerOptions);
+            JsonResponseConstructor jsonResponseBuilder = new JsonResponseConstructor(returnType, jsonSerializerOptions);
             return new CombinedResponseBuilder(responseModifiers, jsonResponseBuilder);
         }
     }
