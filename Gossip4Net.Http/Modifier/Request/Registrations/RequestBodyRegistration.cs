@@ -1,8 +1,8 @@
-﻿using Gossip4Net.Http.Modifier.Request;
+﻿using Gossip4Net.Http.Builder.Request;
 using System.Net.Http.Json;
 using System.Text.Json;
 
-namespace Gossip4Net.Http.Builder.Request.Registrations
+namespace Gossip4Net.Http.Modifier.Request.Registrations
 {
     internal class RequestBodyRegistration : RequestAttributeRegistration<Attribute>
     {
