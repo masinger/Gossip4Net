@@ -11,5 +11,12 @@ namespace Gossip4Net.Http.Modifier.Request.Registration
                 .Select(a => new RequestStaticHeaderModifier(a.Name, a.Value))
                 .ToList<IHttpRequestModifier>();
         }
+
+        public override IList<IHttpRequestModifier>? ForType(RequestTypeContext typeContext, IList<HeaderValue> attributes)
+        {
+            return attributes
+                .Select(it => new RequestStaticHeaderModifier(it.Name, it.Value))
+                .ToList<IHttpRequestModifier>();
+        }
     }
 }

@@ -22,25 +22,11 @@ namespace Gossip4Net.Http
         public T Build()
         {
             Type t = typeof(T);
-            List<IHttpRequestModifier> globalRequestModifiers = new List<IHttpRequestModifier>();
-            HttpApi? apiAttribute = t.GetCustomAttribute<HttpApi>();
-            if (apiAttribute != null)
-            {
-                if (apiAttribute.Url != null)
-                {
-                    globalRequestModifiers.Add(new RequestUriModifier(apiAttribute.Url));
-                }
-            }
-
-            foreach (HeaderValue headerValue in t.GetCustomAttributes<HeaderValue>())
-            {
-                globalRequestModifiers.Add(new RequestStaticHeaderModifier(headerValue.Name, headerValue.Value));
-            }
-
-            IDictionary<ClientRegistration, RequestMethodImplementation> registrations = new Dictionary<ClientRegistration, RequestMethodImplementation>();
+            RequestTypeContext requestTypeContext = new RequestTypeContext(t);
 
             IList<IRequestAttributeRegistration> requestAttributeRegistrations = new List<IRequestAttributeRegistration>() // TODO: Inject
             {
+                new HttpApiRegistration(),
                 new HttpMappingRegistration(),
                 new HeaderValueRegistration(),
                 new PathVariableRegistration(DefaultValueConverter),
@@ -48,6 +34,13 @@ namespace Gossip4Net.Http
                 new HeaderVariableRegistration(DefaultValueConverter),
                 new RequestBodyRegistration(JsonOptions),
             };
+
+            IList<Attribute> allTypeAttributes = t.GetCustomAttributes<Attribute>().ToList();
+            List<IHttpRequestModifier> globalRequestModifiers = requestAttributeRegistrations
+                .Select(it => it.ForType(requestTypeContext, allTypeAttributes))
+                .Where(it => it != null)
+                .SelectMany(it => it!)
+                .ToList();
 
             IList<IResponseConstructorRegistration> responseConstructorRegistrations = new List<IResponseConstructorRegistration>()
             {
@@ -68,9 +61,10 @@ namespace Gossip4Net.Http
                 responseConstructorRegistrations
             );
 
+            IDictionary<ClientRegistration, RequestMethodImplementation> registrations = new Dictionary<ClientRegistration, RequestMethodImplementation>();
             foreach (MethodInfo method in t.GetMethods())
             {
-                RequestMethodContext requestMethodContext = new RequestMethodContext(t, method);
+                RequestMethodContext requestMethodContext = new RequestMethodContext(requestTypeContext, method);
                 KeyValuePair<ClientRegistration, RequestMethodImplementation> implementation = methodImplemantationBuilder.BuildImplementation(requestMethodContext);
                 registrations[implementation.Key] = implementation.Value;
             }

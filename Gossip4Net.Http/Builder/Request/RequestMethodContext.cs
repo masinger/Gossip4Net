@@ -4,15 +4,15 @@ namespace Gossip4Net.Http.Builder.Request
 {
     public class RequestMethodContext
     {
-        public Type TypeInfo { get; }
+        public RequestTypeContext TypeContext { get; }
         public MethodInfo MethodInfo { get; }
 
         public RequestMethodContext(
-            Type typeInfo,
+            RequestTypeContext typeContext,
             MethodInfo methodInfo
         )
         {
-            TypeInfo = typeInfo;
+            TypeContext = typeContext;
             MethodInfo = methodInfo;
         }
     }

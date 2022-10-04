@@ -7,6 +7,6 @@
 
     public interface IResponseConstructor<T> : IResponseConstructor
     {
-        public Task<ConstructedResponse<T>> ConstructResponseAsync(HttpResponseMessage responseMessage);
+        public new Task<ConstructedResponse<T>> ConstructResponseAsync(HttpResponseMessage responseMessage);
     }
 }

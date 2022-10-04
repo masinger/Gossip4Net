@@ -2,27 +2,6 @@
 
 namespace Gossip4Net.Http.Modifier.Request.Registration
 {
-
-    public interface IRequestAttributeRegistration
-    {
-        /// <summary>
-        /// This method is called when a request method parameter is found. 
-        /// </summary>
-        /// <param name="parameterContext">Information about the parameter being processed.</param>
-        /// <param name="attributes">The attributes present/active for the current parameter. The enumerable might be empty (but not null), if there are no attributes.</param>
-        /// <returns>A list of request modifiers to be registered. The method might return null to indicate that there are no modifiers to be registered.</returns>
-        public IList<IHttpRequestModifier>? ForParameter(RequestParameterContext parameterContext, IEnumerable<Attribute> attributes);
-
-        /// <summary>
-        /// This method is called when a request method is found. 
-        /// </summary>
-        /// <param name="methodContext">Information about the method being processed</param>
-        /// <param name="attributes">The attributes present/active for the current method. The enumerable might be empty (but not null), if there are no attributes.</param>
-        /// <returns>A list of request modifiers to be registered. The method might return null to indicate that there are no modifiers to be registered.</returns>
-        public IList<IHttpRequestModifier>? ForMethod(RequestMethodContext methodContext, IEnumerable<Attribute> attributes);
-
-    }
-
     /// <summary>
     /// This class provides default implementations for <see cref="IRequestAttributeRegistration"/>. It can be inherited in order to register custom request modifiers.
     /// </summary>
@@ -94,6 +73,26 @@ namespace Gossip4Net.Http.Modifier.Request.Registration
                 return ForMethod(methodContext);
             }
             return ForMethod(methodContext, relevantAttributes);
+        }
+
+        public virtual IList<IHttpRequestModifier>? ForType(RequestTypeContext typeContext, IList<T> attributes)
+        {
+            return null;
+        }
+
+        public virtual IList<IHttpRequestModifier>? ForType(RequestTypeContext typeContext)
+        {
+            return null;
+        }
+
+        public IList<IHttpRequestModifier>? ForType(RequestTypeContext typeContext, IEnumerable<Attribute> attributes)
+        {
+            IList<T> relevantAttributes = FilterRelevantAttributes(attributes);
+            if (relevantAttributes.Count == 0)
+            {
+                return ForType(typeContext);
+            }
+            return ForType(typeContext, relevantAttributes);
         }
     }
 }
