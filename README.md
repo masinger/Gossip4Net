@@ -76,7 +76,7 @@ namespace MyDemo {
 
 For ASP.NET core, dependency injection can be used:
 ```csharp
-using Gossip4Net.Http.DependencyInjection;
+using  Microsoft.Extensions.DependencyInjection;
 
 namespace AspNetDemo {
 
@@ -92,8 +92,6 @@ namespace AspNetDemo {
 
 ### 3. Let Gossip4Net implement your API interface
 ```csharp
-using  Microsoft.Extensions.DependencyInjection;
-
 namespace MyDemo {
     public class Demo {
         public async Task Startup() {
