@@ -2,6 +2,7 @@ using Gossip4Net.Http.Test.Clients;
 using FluentAssertions;
 using System.Text.Json;
 using Gossip4Net.Http.Attributes;
+using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 
 namespace Gossip4Net.Http.Test
 {
@@ -144,5 +145,18 @@ namespace Gossip4Net.Http.Test
             result.headers["Interface-Header"].Should().Be("interface");
         }
 
+        [Fact]
+        public async void FixedQueryValueShouldBeSupported()
+        {
+            // Act
+            HttpBinResponse result = await client.GetAsyncWithStaticQuery();
+
+            // Assert
+            result.args["interface"].Should().Be("True");
+            result.args["interface-index"].Should().Be("3");
+
+            result.args["method"].Should().Be("present");
+            result.args["method2"].Should().Be("a,b,c");
+        }
     }
 }

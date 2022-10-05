@@ -3,10 +3,6 @@
     [AttributeUsage(AttributeTargets.Parameter, AllowMultiple = true)]
     public class QueryVariable : Attribute
     {
-        public string? Name { get; set; }
-        public bool OmitEmpty { get; set; } = true;
-        public bool EnumerateUsingMultipleParams { get; set; } = true;
-
         public QueryVariable()
         {
         }
@@ -16,5 +12,8 @@
             Name = name;
         }
 
+        public string? Name { get; init; }
+        public bool OmitEmpty { get; init; } = true;
+        public bool EnumerateUsingMultipleParams { get; init; } = true;
     }
 }
