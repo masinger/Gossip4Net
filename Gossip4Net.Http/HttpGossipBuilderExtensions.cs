@@ -53,18 +53,18 @@ namespace Gossip4Net.Http
             return instance;
         }
 
-        public static IHttpGossipBuilder<T> AddVariablesBehavior<T>(this IHttpGossipBuilder<T> instance, Func<object?, string> stringifier)
+        public static IHttpGossipBuilder<T> AddStringifyingBehavior<T>(this IHttpGossipBuilder<T> instance, Func<object?, string> stringifier)
         {
             instance.Registrations.RequestAttributes.Add(new PathVariableRegistration(stringifier));
             instance.Registrations.RequestAttributes.Add(new QueryVariableRegistration(stringifier));
             instance.Registrations.RequestAttributes.Add(new HeaderVariableRegistration(stringifier));
-
+            instance.Registrations.RequestAttributes.Add(new QueryValueRegistration(stringifier));
             return instance;
         }
 
-        public static IHttpGossipBuilder<T> AddVariablesBehavior<T>(this IHttpGossipBuilder<T> instance)
+        public static IHttpGossipBuilder<T> AddStringifyingBehavior<T>(this IHttpGossipBuilder<T> instance)
         {
-            return instance.AddVariablesBehavior(o => $"{o}");
+            return instance.AddStringifyingBehavior(o => $"{o}");
         }
 
         public static IHttpGossipBuilder<T> AddDefaultBehavior<T>(
@@ -75,7 +75,7 @@ namespace Gossip4Net.Http
         {
             return instance
                 .AddBasicBehavior()
-                .AddVariablesBehavior(stringifier)
+                .AddStringifyingBehavior(stringifier)
                 .AddJsonBehavior(jsonSerializerOptions);
         }
 
@@ -83,7 +83,7 @@ namespace Gossip4Net.Http
         {
             return instance
                 .AddBasicBehavior()
-                .AddVariablesBehavior()
+                .AddStringifyingBehavior()
                 .AddJsonBehavior(jsonSerializerOptions);
         }
 
@@ -91,7 +91,7 @@ namespace Gossip4Net.Http
         {
             return instance
                 .AddBasicBehavior()
-                .AddVariablesBehavior(stringifier)
+                .AddStringifyingBehavior(stringifier)
                 .AddJsonBehavior();
         }
 
@@ -101,7 +101,7 @@ namespace Gossip4Net.Http
         {
             return instance
                 .AddBasicBehavior()
-                .AddVariablesBehavior()
+                .AddStringifyingBehavior()
                 .AddJsonBehavior();
         }
 

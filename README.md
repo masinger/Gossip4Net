@@ -11,6 +11,7 @@ Gossip4Net is an extensible http client middleware similar to Spring Feign. It a
     - [Url mapping](#url-mapping)
     - [Path variables](#path-variables)
     - [Query variables](#query-variables)
+    - [Static query values](#static-query-values)
     - [Header variables](#header-variables)
     - [Static header values](#static-header-values)
     - [Raw http response](#raw-http-response)
@@ -76,7 +77,7 @@ namespace MyDemo {
 
 For ASP.NET core, dependency injection can be used:
 ```csharp
-using Gossip4Net.Http.DependencyInjection;
+using  Microsoft.Extensions.DependencyInjection;
 
 namespace AspNetDemo {
 
@@ -92,8 +93,6 @@ namespace AspNetDemo {
 
 ### 3. Let Gossip4Net implement your API interface
 ```csharp
-using  Microsoft.Extensions.DependencyInjection;
-
 namespace MyDemo {
     public class Demo {
         public async Task Startup() {
@@ -155,6 +154,16 @@ public interface MyApi {
 
 The above example will result in a call to `https://httpbin.org/get`.
 
+*Example path combinations*
+| Base path                 | Extension | Result                            |
+| ---------                 | --------- | ------                            |
+| `https://localhost`       | `/api`    | `https://localhost/api`           |
+| `https://localhost/api`   | `/person` | `https://localhost/api/person`    |
+| `https://localhost/api`   | `person`  | `https://localhost/person`        |
+| `https://localhost/api/`  | `person`  | `https://localhost/api/person`    |
+| `https://localhost/api/`  | `/person` | `https://localhost/person`        | 
+
+
 ### Path variables
 Parameter values can be interpolated into the request path using the `[PathVariable]` attribute.
 
@@ -200,6 +209,25 @@ It can also be specified manually.
 | `Name` | The query parameter name. | The annotated parameter's name. |
 | `OmitEmpty` | If `true`, the query parameter will be omitted for given `null` values. | `true` |
 | `EnumerateUsingMultipleParams` | If the parameter type is an `IEnumerable` and this is set to `true`, the query parameter name will be repeated for each entry. | `true` |
+
+### Static query values
+Similar to `[QueryVariable]`, the `[QueryValue(string name, object? value)]` attribute can be used to send a static header with every request.
+
+```csharp
+[HttpApi("https://httpbin.org")]
+[QueryValue("json", "true")]
+public interface MyApi {    
+    [QueryValue("max", 100)]
+    HttpResponseMessage Get();
+}
+```
+
+*Available properties*
+| Property | Description | Default |
+|----------|-------------|---------|
+| `Name` | The query parameter name. | none |
+| `Value` | The value to be sent. | none |
+| `EnumerateUsingMultipleParams`| If the parameter type is an `IEnumerable` and this is set to `true`, the query parameter name will be repeated for each entry. | `true` |
 
 ### Header variables
 Parameter values can be sent as request headers using the `[HeaderVariable]` attribute.

@@ -14,6 +14,8 @@ namespace Gossip4Net.Http.Test.Clients
 
     [HttpApi("https://httpbin.org")]
     [HeaderValue("Interface-Header", "interface")]
+    [QueryValue("interface", true)]
+    [QueryValue("interface-index", 3)]
     public interface IHttpBinClient
     {
         [GetMapping("/get")]
@@ -52,5 +54,10 @@ namespace Gossip4Net.Http.Test.Clients
         [GetMapping("/get")]
         [HeaderValue("Method-Header", "method")]
         Task<HttpBinResponse> GetAyncWithStaticHeader();
+
+        [GetMapping("/get")]
+        [QueryValue("method", "present")]
+        [QueryValue("method2", new string[] { "a", "b", "c" })]
+        Task<HttpBinResponse> GetAsyncWithStaticQuery();
     }
 }

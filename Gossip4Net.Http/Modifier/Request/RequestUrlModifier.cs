@@ -11,21 +11,7 @@
 
         public Task<HttpRequestMessage> ApplyAsync(HttpRequestMessage requestMessage, object?[] args)
         {
-            Uri? currentUri = requestMessage.RequestUri;
-
-            Uri? absoluteUri;
-            Uri.TryCreate(url, UriKind.Absolute, out absoluteUri);
-
-            Uri? relativeUri;
-            Uri.TryCreate(url, UriKind.Relative, out relativeUri);
-
-            if (currentUri == null || absoluteUri != null)
-            {
-                requestMessage.RequestUri = absoluteUri;
-                return Task.FromResult(requestMessage);
-            }
-
-            requestMessage.RequestUri = new Uri(currentUri, relativeUri ?? throw new ConfigurationException($"Invalid uri '{url}'."));
+            requestMessage.RequestUri = requestMessage.RequestUri.Append(url);
             return Task.FromResult(requestMessage);
         }
     }
