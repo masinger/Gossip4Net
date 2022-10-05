@@ -1,4 +1,4 @@
-﻿namespace Gossip4Net.Model.Mappings
+﻿namespace Gossip4Net.Http.Attributes.Mappings
 {
     public class HttpMapping : Attribute
     {

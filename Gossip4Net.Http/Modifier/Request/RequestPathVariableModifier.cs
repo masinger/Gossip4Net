@@ -1,4 +1,4 @@
-﻿using Gossip4Net.Model;
+﻿using Gossip4Net.Http.Attributes;
 
 namespace Gossip4Net.Http.Modifier.Request
 {

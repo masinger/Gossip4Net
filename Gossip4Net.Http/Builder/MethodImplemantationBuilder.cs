@@ -1,9 +1,9 @@
-﻿using Gossip4Net.Http.Builder.Request;
+﻿using Gossip4Net.Http.Attributes.Mappings;
+using Gossip4Net.Http.Builder.Request;
 using Gossip4Net.Http.Builder.Response;
 using Gossip4Net.Http.Client;
 using Gossip4Net.Http.Modifier.Request;
 using Gossip4Net.Http.Modifier.Response;
-using Gossip4Net.Model.Mappings;
 using System.Reflection;
 
 namespace Gossip4Net.Http.Builder

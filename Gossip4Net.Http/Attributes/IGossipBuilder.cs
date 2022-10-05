@@ -1,4 +1,4 @@
-﻿namespace Gossip4Net.Model
+﻿namespace Gossip4Net.Http.Attributes
 {
     public interface IGossipBuilder<T>
     {

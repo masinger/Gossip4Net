@@ -1,5 +1,5 @@
-﻿using Gossip4Net.Http.Builder.Request;
-using Gossip4Net.Model.Mappings;
+﻿using Gossip4Net.Http.Attributes.Mappings;
+using Gossip4Net.Http.Builder.Request;
 
 namespace Gossip4Net.Http.Modifier.Request.Registration
 {

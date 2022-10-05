@@ -1,4 +1,4 @@
-﻿namespace Gossip4Net.Model.Mappings
+﻿namespace Gossip4Net.Http.Attributes.Mappings
 {
     [AttributeUsage(AttributeTargets.Method, AllowMultiple = false)]
     public class PatchMapping : HttpMapping

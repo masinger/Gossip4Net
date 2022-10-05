@@ -1,0 +1,20 @@
+﻿namespace Gossip4Net.Http.Attributes
+{
+    [AttributeUsage(AttributeTargets.Parameter, AllowMultiple = true)]
+    public class QueryVariable : Attribute
+    {
+        public string? Name { get; set; }
+        public bool OmitEmpty { get; set; } = true;
+        public bool EnumerateUsingMultipleParams { get; set; } = true;
+
+        public QueryVariable()
+        {
+        }
+
+        public QueryVariable(string name)
+        {
+            Name = name;
+        }
+
+    }
+}

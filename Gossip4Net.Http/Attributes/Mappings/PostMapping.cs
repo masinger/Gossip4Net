@@ -1,4 +1,4 @@
-﻿namespace Gossip4Net.Model.Mappings
+﻿namespace Gossip4Net.Http.Attributes.Mappings
 {
     [AttributeUsage(AttributeTargets.Method)]
     public class PostMapping : HttpMapping

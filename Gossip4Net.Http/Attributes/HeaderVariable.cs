@@ -1,17 +1,16 @@
-﻿namespace Gossip4Net.Model
+﻿namespace Gossip4Net.Http.Attributes
 {
     [AttributeUsage(AttributeTargets.Parameter, AllowMultiple = true)]
-    public class QueryVariable : Attribute
+    public class HeaderVariable : Attribute
     {
         public string? Name { get; set; }
         public bool OmitEmpty { get; set; } = true;
-        public bool EnumerateUsingMultipleParams { get; set; } = true;
 
-        public QueryVariable()
+        public HeaderVariable()
         {
         }
 
-        public QueryVariable(string name)
+        public HeaderVariable(string name)
         {
             Name = name;
         }

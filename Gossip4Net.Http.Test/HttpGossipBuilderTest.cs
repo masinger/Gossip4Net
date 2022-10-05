@@ -1,7 +1,7 @@
 using Gossip4Net.Http.Test.Clients;
-using Gossip4Net.Model;
 using FluentAssertions;
 using System.Text.Json;
+using Gossip4Net.Http.Attributes;
 
 namespace Gossip4Net.Http.Test
 {

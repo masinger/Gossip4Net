@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
@@ -14,7 +14,7 @@
     <PackageProjectUrl>https://github.com/masinger/Gossip4Net</PackageProjectUrl>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <Description>Gossip4Net is an extensible http client middleware similar to Spring Feign. It allows developers to easily consume APIs using an interface contract, which gets automatically implemented.</Description>
-    <Version>0.0.1.0</Version>
+    <Version>0.0.2.0</Version>
   </PropertyGroup>
 
   <ItemGroup>
@@ -27,10 +27,6 @@
   <ItemGroup>
     <PackageReference Include="ImpromptuInterface" Version="7.0.1" />
     <PackageReference Include="System.Net.Http" Version="4.3.4" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\Gossip4Net.Model\Gossip4Net.Model.csproj" />
   </ItemGroup>
 
 </Project>

@@ -1,4 +1,4 @@
-﻿namespace Gossip4Net.Model
+﻿namespace Gossip4Net.Http.Attributes
 {
     [AttributeUsage(AttributeTargets.Parameter)]
     public class PathVariable : Attribute
