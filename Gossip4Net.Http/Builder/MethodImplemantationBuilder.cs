@@ -149,7 +149,7 @@ namespace Gossip4Net.Http.Builder
                     ConstructedResponse constructedResponse = await responseConstructor.ConstructResponseAsync(response);
                     if (constructedResponse.IsEmpty)
                     {
-                        throw new NoResponseCreatorException();
+                        throw new NoResponseCreatorException(response);
                     }
                     return constructedResponse.Response;
                 }

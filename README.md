@@ -19,6 +19,9 @@ Gossip4Net is an extensible http client middleware similar to Spring Feign. It a
     - [Request body](#request-body)
     - [Response body](#response-body)
     - [Json (de)serialization](#json-deserialization)
+1. [Authentication](#authentication)
+    - [Basic auth](#basic-auth)
+    - [OpenID with client secret](#openid-with-client-secret)
 1. [Testing](#testing)
 
 ## Getting started
@@ -376,6 +379,107 @@ JsonSerializerOptions options = new JsonSerializerOptions
 };
 builder.Registrations.RequestAttributes.Add(new JsonRequestBodyRegistration(options));
 builder.Registrations.ResponseConstructors.Add(new JsonResponseConstructorRegistration(options));
+```
+
+## Authentication
+Authentication can be implemented using third-party `HttpClient` middleware tools (like the common [IdentityModel project](https://github.com/IdentityModel/IdentityModel) or another library of your choice).
+The main entry point for configuring authentication is always the `IHttpGossipBuilder<>.ClientProvider` property, which holds a factory method returning a fresh `HttpClient` instance.
+
+Refer to the examples below for suggestions on how certain authentication methods can be configured. If not stated otherwise, [IdentityModel project](https://github.com/IdentityModel/IdentityModel) will be used.
+
+> **Warning**
+> The examples are written to be as concise and minimal as possible. 
+Common and required security measures (e.g. obtaining passwords and secrets from secure sources) are omitted for clearity. 
+Please consult the documentation relevant to your setup and tooling, in order to learn about safe ways to handle secrets. 
+>
+>A good starting point might be the following MSDN documentation:
+>-  [Safe storage of app secrets in development in ASP.NET Core](https://learn.microsoft.com/en-us/aspnet/core/security/app-secrets)
+
+
+### Basic Auth
+
+*API definition*
+```csharp
+[HttpApi("https://httpbin.org")]
+public interface IHttpBinStaticBasicAuthApi
+{
+    [GetMapping("/basic-auth/myuser/mypassword")]
+    HttpResponseMessage GetWithBasicAuth();
+}
+```
+
+*Example usage with basic auth*
+```csharp
+public class BasicAuthTest
+{
+    [Fact]
+    public void HttpClientWithBasicAuthShouldWork()
+    {
+        // Arrange
+        IHttpGossipBuilder<IHttpBinStaticBasicAuthApi> gossipBuilder = HttpGossipBuilder<IHttpBinStaticBasicAuthApi>.NewDefaultBuilder();
+        gossipBuilder.ClientProvider = () =>
+        {
+            HttpClient httpClient = new HttpClient();
+            httpClient.SetBasicAuthentication("myuser", "mypassword");
+            return httpClient;
+        };
+        IHttpBinStaticBasicAuthApi api = gossipBuilder.Build();
+
+        // Act
+        HttpResponseMessage response = api.GetWithBasicAuth();
+
+        // Assert
+        response.IsSuccessStatusCode.Should().BeTrue();
+    }
+}
+```
+
+### OpenID with client secret
+This example uses a client id and secret in order to authenticate against an OIDC identity provider.
+The token retrival and management is done automatically by IdentityModel. 
+
+*API definition*
+```csharp
+[HttpApi("https://demo.duendesoftware.com/api/test")]
+public interface IOidcApi
+{
+    [GetMapping]
+    HttpResponseMessage Get();
+}
+```
+
+*Example usage with ASP.NET core and IdentityModel.AspNetCore*
+```csharp
+public class OidcAuthTest
+{
+    [Fact]
+    public void FullExampleShouldWord()
+    {
+        // Arrange
+        ServiceCollection services = new ServiceCollection();
+        services.AddAccessTokenManagement(options => // configuring the access token managenment
+        {
+            options.Client.Clients.Add("demo", new ClientCredentialsTokenRequest
+            {
+                Address = "https://demo.duendesoftware.com/connect/token",
+                ClientId = "m2m",
+                ClientSecret = "secret"
+            });
+        }).ConfigureBackchannelHttpClient();
+
+        services.AddGossipHttpClient<IOidcApi>()
+            .AddClientAccessTokenHandler("demo"); // binding the access token handler to the http client used by Gossi4Net
+
+        ServiceProvider sp = services.BuildServiceProvider();
+        IOidcApi client = sp.GetRequiredService<IOidcApi>();
+
+        // Act
+        HttpResponseMessage result = client.Get();
+
+        // Assert
+        result.IsSuccessStatusCode.Should().BeTrue();
+    }
+}
 ```
 
 ## Testing

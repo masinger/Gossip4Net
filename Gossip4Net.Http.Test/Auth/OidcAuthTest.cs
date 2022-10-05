@@ -1,12 +1,11 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using IdentityModel.Client;
-using Gossip4Net.Http.Test.Clients;
 using FluentAssertions;
 using Gossip4Net.Http.DependencyInjection;
 
-namespace Gossip4Net.Http.Test
+namespace Gossip4Net.Http.Test.Auth
 {
-    public class OIDCAuthTest
+    public class OidcAuthTest
     {
         private ServiceCollection CreateServiceCollectionWithAccessTokenManagement()
         {
@@ -26,16 +25,45 @@ namespace Gossip4Net.Http.Test
         }
 
         [Fact]
+        public void FullExampleShouldWord()
+        {
+            // Arrange
+            ServiceCollection services = new ServiceCollection();
+            services.AddAccessTokenManagement(options => // configuring the access token managenment
+            {
+                options.Client.Clients.Add("demo", new ClientCredentialsTokenRequest
+                {
+                    Address = "https://demo.duendesoftware.com/connect/token",
+                    ClientId = "m2m",
+                    ClientSecret = "secret"
+                });
+            }).ConfigureBackchannelHttpClient();
+
+            services.AddGossipHttpClient<IOidcApi>()
+                .AddClientAccessTokenHandler("demo"); // binding the access token handler to the http client used by Gossi4Net
+
+            ServiceProvider sp = services.BuildServiceProvider();
+            IOidcApi client = sp.GetRequiredService<IOidcApi>();
+
+            // Act
+            HttpResponseMessage result = client.Get();
+
+            // Assert
+            result.IsSuccessStatusCode.Should().BeTrue();
+        }
+
+
+        [Fact]
         public void RequestsWithAuthShouldWorkWhenSetupUsingExtensionMethods()
         {
             // Arrange
             ServiceCollection services = CreateServiceCollectionWithAccessTokenManagement();
 
-            services.AddGossipHttpClient<IDuendeDemo>()
+            services.AddGossipHttpClient<IOidcApi>()
                 .AddClientAccessTokenHandler("demo");
 
             ServiceProvider sp = services.BuildServiceProvider();
-            IDuendeDemo client = sp.GetRequiredService<IDuendeDemo>();
+            IOidcApi client = sp.GetRequiredService<IOidcApi>();
 
             // Act
             HttpResponseMessage result = client.Get();
@@ -56,11 +84,11 @@ namespace Gossip4Net.Http.Test
             services.AddSingleton(prov =>
             {
                 Func<HttpClient> clientProvider = () => prov.GetRequiredService<IHttpClientFactory>().CreateClient("demo");
-                return new HttpGossipBuilder<IDuendeDemo>() {  ClientProvider = clientProvider }.AddDefaultBehavior().Build();
+                return new HttpGossipBuilder<IOidcApi>() { ClientProvider = clientProvider }.AddDefaultBehavior().Build();
             });
 
             ServiceProvider sp = services.BuildServiceProvider();
-            IDuendeDemo client = sp.GetRequiredService<IDuendeDemo>();
+            IOidcApi client = sp.GetRequiredService<IOidcApi>();
 
             // Act
             HttpResponseMessage result = client.Get();

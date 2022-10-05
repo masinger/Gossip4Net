@@ -2,12 +2,12 @@
 {
     public class NoResponseCreatorException : Exception
     {
-        public NoResponseCreatorException() : this("There has been no response constructor that was able to process the received response.")
+        public NoResponseCreatorException(HttpResponseMessage responseMessage)
+            : base($"There has been no response constructor that was able to process the received response (see {nameof(Response)} property for further details).")
         {
+            Response = responseMessage;
         }
 
-        public NoResponseCreatorException(string? message) : base(message)
-        {
-        }
+        public HttpResponseMessage Response { get; }
     }
 }
