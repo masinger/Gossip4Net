@@ -5,13 +5,11 @@ namespace Gossip4Net.Http.Test
     public class UriTest
     {
 
-        record UriTestCombination(Uri? Original, string Appendix, Uri Expected) {
+        record UriTestCombination(Uri? Original, string Appendix, Uri Expected)
+        {
 
-            public UriTestCombination(string? original, string appendix, string expected) 
-                : this(original != null ? new Uri(original) : null, appendix, new Uri(expected))
-            {
-            
-            }
+            public UriTestCombination(string? original, string appendix, string expected)
+                : this(original != null ? new Uri(original) : null, appendix, new Uri(expected)) { }
 
         }
 
@@ -23,7 +21,8 @@ namespace Gossip4Net.Http.Test
             new UriTestCombination("https://localhost/api/", "test/foo", "https://localhost/api/test/foo"),
             new UriTestCombination("https://localhost/api", "/test", "https://localhost/api/test"),
             new UriTestCombination("https://localhost/api", "test", "https://localhost/test"),
-            new UriTestCombination("https://localhost/api/", "/test", "https://localhost/test")
+            new UriTestCombination("https://localhost/api/", "/test", "https://localhost/test"),
+            new UriTestCombination("https://localhost/api?format=json", "/test", "https://localhost/api/test?format=json")
         };
 
         [Fact]
