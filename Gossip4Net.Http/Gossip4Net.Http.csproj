@@ -14,7 +14,7 @@
     <PackageProjectUrl>https://github.com/masinger/Gossip4Net</PackageProjectUrl>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <Description>Gossip4Net is an extensible http client middleware similar to Spring Feign. It allows developers to easily consume APIs using an interface contract, which gets automatically implemented.</Description>
-    <Version>0.0.2.0</Version>
+    <Version>0.0.3.0</Version>
   </PropertyGroup>
 
   <ItemGroup>
