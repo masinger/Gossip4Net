@@ -10,7 +10,6 @@ namespace Gossip4Net.Http
 {
     public class HttpGossipBuilder<T> : IHttpGossipBuilder<T> where T:class
     {
-
         public Func<HttpClient> ClientProvider { get; set; } = () => new HttpClient();
 
         public Registrations Registrations { get; } = new Registrations();

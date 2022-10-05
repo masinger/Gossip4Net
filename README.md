@@ -19,6 +19,7 @@ Gossip4Net is an extensible http client middleware similar to Spring Feign. It a
     - [Request body](#request-body)
     - [Response body](#response-body)
     - [Json (de)serialization](#json-deserialization)
+1. [Testing](#testing)
 
 ## Getting started
 
@@ -74,7 +75,6 @@ For ASP.NET core, dependency injection can be used:
 ```csharp
 using Gossip4Net.Http.DependencyInjection;
 
-
 namespace AspNetDemo {
 
     public class Startup {
@@ -89,7 +89,7 @@ namespace AspNetDemo {
 
 ### 3. Let Gossip4Net implement your API interface
 ```csharp
-using  Gossip4Net.Http;
+using  Microsoft.Extensions.DependencyInjection;
 
 namespace MyDemo {
     public class Demo {
@@ -282,7 +282,7 @@ public interface MyApi
 ```
 
 ### Request body
-Parameter values without an attribute will be serialized and send using the request body.
+Parameter values without an attribute will be serialized and sent using the request body.
 
 ```csharp
 public class Person {
@@ -346,7 +346,7 @@ IHttpGossipBuilder<MyApi> builder = new HttpGossipBuilder<MyApi>()
     });
 ```
 
-*Creating a builder using builder helper method*
+*Creating a builder using a builder helper method*
 ```csharp
 IHttpGossipBuilder<MyApi> builder = HttpGossipBuilder<MyApi>.NewDefaultBuilder(
     new JsonSerializerOptions
@@ -378,3 +378,69 @@ builder.Registrations.RequestAttributes.Add(new JsonRequestBodyRegistration(opti
 builder.Registrations.ResponseConstructors.Add(new JsonResponseConstructorRegistration(options));
 ```
 
+## Testing
+Testing a component that relies on the API is as easy as just implementing/mocking the API interface.
+
+Assuming your API definition, model and service are looking like these:
+```csharp
+namespace Demo
+{
+    public record ExampleResponse(
+        IDictionary<string, string> Headers,
+        string Origin,
+        string Url,
+        IDictionary<string, string> Args);
+
+    [HttpApi("https://httpbin.org")]
+    public interface IExampleApi
+    {
+        [GetMapping("/get")]
+        Task<ExampleResponse> Get();
+    }
+
+    public class ExampleService
+    {
+        private readonly IExampleApi exampleApi;
+
+        public ExampleService(IExampleApi exampleApi)
+        {
+            this.exampleApi = exampleApi;
+        }
+
+        public async Task<int> CountHeaders()
+        {
+            return (await exampleApi.Get()).Headers.Count;
+        }
+    }
+}
+```
+
+Then your service test could look tike that (using Moq and FluentAssertions):
+
+```csharp
+public class DemoMockTest
+{
+    [Fact]
+    public async Task CountHeadersShouldReturnNumberOfReceivedHeaders()
+    {
+        // Arrange
+        Mock<IExampleApi> apiMock = new Mock<IExampleApi>();
+        apiMock.Setup(api => api.Get())
+        .ReturnsAsync(new ExampleResponse(
+            Headers: new Dictionary<string, string> { { "Content-Type", "Example" }, { "Foo", "Bar" } },
+            Origin: "a string",
+            Url: "a url",
+            Args: new Dictionary<string, string>()
+        ));
+        
+        IExampleApi exampleApi = apiMock.Object;
+        ExampleService serviceUnderTest = new ExampleService(exampleApi);
+
+        // Act
+        int headerCount = await serviceUnderTest.CountHeaders();
+
+        // Assert
+        headerCount.Should().Be(2);
+    }
+}
+```
