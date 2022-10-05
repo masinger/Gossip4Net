@@ -153,6 +153,16 @@ public interface MyApi {
 
 The above example will result in a call to `https://httpbin.org/get`.
 
+*Example path combinations*
+| Base path                 | Extension | Result                            |
+| ---------                 | --------- | ------                            |
+| `https://localhost`       | `/api`    | `https://localhost/api`           |
+| `https://localhost/api`   | `/person` | `https://localhost/api/person`    |
+| `https://localhost/api`   | `person`  | `https://localhost/person`        |
+| `https://localhost/api/`  | `person`  | `https://localhost/api/person`    |
+| `https://localhost/api/`  | `/person` | `https://localhost/person`        | 
+
+
 ### Path variables
 Parameter values can be interpolated into the request path using the `[PathVariable]` attribute.
 
