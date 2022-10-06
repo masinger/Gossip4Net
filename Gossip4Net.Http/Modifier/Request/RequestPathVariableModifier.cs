@@ -2,7 +2,7 @@
 
 namespace Gossip4Net.Http.Modifier.Request
 {
-    internal class RequestPathVariableModifier : IHttpRequestModifier
+    public class RequestPathVariableModifier : IHttpRequestModifier
     {
         private readonly Func<object?, string> valueConverter;
         private readonly IEnumerable<PathVariable> pathVariables;

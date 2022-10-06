@@ -3,7 +3,7 @@ using Gossip4Net.Http.Builder.Request;
 
 namespace Gossip4Net.Http.Modifier.Request.Registration
 {
-    internal class HeaderVariableRegistration : RequestAttributeRegistration<HeaderVariable>
+    public class HeaderVariableRegistration : RequestAttributeRegistration<HeaderVariable>
     {
 
         private readonly Func<object?, string> valueConverter;

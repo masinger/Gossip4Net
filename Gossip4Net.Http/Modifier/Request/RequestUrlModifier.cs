@@ -1,6 +1,6 @@
 ﻿namespace Gossip4Net.Http.Modifier.Request
 {
-    internal class RequestUriModifier : IHttpRequestModifier
+    public class RequestUriModifier : IHttpRequestModifier
     {
         private readonly string url;
 

@@ -1,6 +1,6 @@
 ﻿namespace Gossip4Net.Http.Modifier.Request
 {
-    internal class RequestStaticHeaderModifier : IHttpRequestModifier
+    public class RequestStaticHeaderModifier : IHttpRequestModifier
     {
         private readonly string name;
         private readonly string value;

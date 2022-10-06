@@ -3,7 +3,7 @@ using Gossip4Net.Http.Builder.Response;
 
 namespace Gossip4Net.Http.Modifier.Response.Registration
 {
-    internal class ResponseSuccessRegistration : ResponseAttributeRegistration<HttpMapping>
+    public class ResponseSuccessRegistration : ResponseAttributeRegistration<HttpMapping>
     {
 
         public override IList<IHttpResponseModifier>? ForMethod(ResponseMethodContext methodContext, IList<HttpMapping> attributes)

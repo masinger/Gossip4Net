@@ -4,7 +4,7 @@ using System.Web;
 
 namespace Gossip4Net.Http.Modifier.Request
 {
-    internal class RequestStaticQueryModifier : IHttpRequestModifier
+    public class RequestStaticQueryModifier : IHttpRequestModifier
     {
         private readonly string name;
         private readonly object? value;
