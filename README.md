@@ -9,6 +9,7 @@ Gossip4Net is an extensible http client middleware similar to Spring Feign. It a
     1. [Use your API](#4-use-your-api)
 1. [Feaures](#features)
     - [Url mapping](#url-mapping)
+    - [Url mapping from code](#url-mapping-from-code)
     - [Path variables](#path-variables)
     - [Query variables](#query-variables)
     - [Static query values](#static-query-values)
@@ -23,6 +24,7 @@ Gossip4Net is an extensible http client middleware similar to Spring Feign. It a
 1. [Authentication](#authentication)
     - [Basic auth](#basic-auth)
     - [OpenID with client secret](#openid-with-client-secret)
+1. [Extensibility](#extensibility)
 1. [Testing](#testing)
 
 ## Getting started
@@ -163,6 +165,56 @@ The above example will result in a call to `https://httpbin.org/get`.
 | `https://localhost/api/`  | `person`  | `https://localhost/api/person`    |
 | `https://localhost/api/`  | `/person` | `https://localhost/person`        | 
 
+### Url mapping from code
+You can also modify/specify urls directly from your code.
+This can come in handy, if you for example need to use a different API version depending on the current environment (e.g test, staging, prod).
+
+All following examples will refer to this API definition.
+```csharp
+[HttpApi("/get")]
+public interface IRelativeHttpBinClient
+{
+    [GetMapping]
+    Task<HttpBinResponse> Get();
+}
+```
+
+To archive this, you can choose one of the following methods. 
+#### By providing a custom http client
+You can specify a custom `HttpClient` provider by setting the builder's `.ClientProvider` property.
+This provider could then set an appropriate `BaseAddress`.
+
+```csharp
+IHttpGossipBuilder<IRelativeHttpBinClient> builder = new HttpGossipBuilder<IRelativeHttpBinClient>().AddDefaultBehavior(new JsonSerializerOptions
+{
+    PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+});
+builder.ClientProvider = () => new HttpClient { BaseAddress = new Uri("https://httpbin.org") };
+
+IRelativeHttpBinClient client = builder.Build();
+```
+
+#### By adding a custom behavior 
+Gossip4Net focuses on extensibility, which enables you to freely add and remove different behaviors. To get and in-depth insight refer to [extensibility](#extensibility).
+
+Request urls are handled by the `RequestUriModifier`, which takes an url and appends it to the currently processed http request.
+By injecting a custom instance into the request chain, you can modify the url as you like.
+
+*Adding a global request modifier using the helper method* 
+```csharp
+IRelativeHttpBinClient client = builder
+    .WithRegistrations(r => r.With(new RequestUriModifier("https://httpbin.org")))
+    .AddDefaultBehavior(new JsonSerializerOptions
+    {
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+    })
+    .Build();
+```
+
+> **Note**
+> The order of operation (adding the `RequestUriModifier` first, then applying the default behavior) is essential. 
+Request modifiers are executed sequentially in order of their registration. If the `RequestUriModifier` was to be registered last,
+the url `https://httpbin.org` would be appended to `/get` (set by the `[HttpApi]` attribute).
 
 ### Path variables
 Parameter values can be interpolated into the request path using the `[PathVariable]` attribute.
@@ -509,6 +561,9 @@ public class OidcAuthTest
     }
 }
 ```
+
+## Extensibility
+// TODO:
 
 ## Testing
 Testing a component that relies on the API is as easy as just implementing/mocking the API interface.
