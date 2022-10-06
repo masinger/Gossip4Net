@@ -1,12 +1,16 @@
 # Gossip4Net
 Gossip4Net is an extensible http client middleware similar to Spring Feign. It allows developers to easily consume APIs using an interface contract, which gets automatically implemented.
 
+> **Note**
+> Please read the [Not invented here](#not-invented-here) section, to learn if this is the right library for your use case.
+
 1. [Getting started](#getting-started)
     1. [Get Gossip4Net](#0-get-gossip4net)
     1. [Define your API contract and models](#1-define-your-api-contract-and-models)
     1. [Obtain and configure a HttpGossipBuilder](#2-obtain-and-configure-a-httpgossipbuilder)
     1. [Let Gossip4Net implement your API interface](#3-let-gossip4net-implement-your-api-interface)
     1. [Use your API](#4-use-your-api)
+1. [Not invented here](#not-invented-here)
 1. [Feaures](#features)
     - [Url mapping](#url-mapping)
     - [Url mapping from code](#url-mapping-from-code)
@@ -124,6 +128,24 @@ namespace MyDemo {
 }
 ```
 
+## Not invented here
+This is (by far) not the first project enabling developers to consume an API by automatically implementing an interface. 
+In fact, there is an awesome library called [Refit](https://github.com/reactiveui/refit), doing just that.
+
+> **Note**
+> For the sake of completeness, it has to be mentioned that there is also [DHaven.Faux](https://github.com/D-Haven/DHaven.Faux) and [feign.net](https://github.com/daixinkai/feign.net) heading in the same general direction (although I don't have firsthand experience with them).
+
+### Why you should use Refit
+[Refit](https://github.com/reactiveui/refit) is a widespread, stable and fast library, providing similar functionality. If you only intend to use "standard" features, it might well be the better choice for your use case - so go check it out!
+
+### Why you should use Gossip4Net
+The "issue" with auto-generating libraries is (IMHO), that you are somewhat limited to the functionalities intended by the project's maintainers.
+Most of the time they will do just fine, but you are probably going to run into trouble the first you need to do something "special". 
+
+What do you do now? Getting rid of the library and implementing everything manually (even the "standard" cases)?
+
+In order to avoid having to ask these questions, Gossip4Net is focused on [extensibility](#extensibility). Even though this library is also providing some [standard features](#features), all of them are added dynamically and in the same way new behaviors could be added by any depending project.
+
 ## Features
 
 ### Url mapping
@@ -195,7 +217,7 @@ IRelativeHttpBinClient client = builder.Build();
 ```
 
 #### By adding a custom behavior 
-Gossip4Net focuses on extensibility, which enables you to freely add and remove different behaviors. To get and in-depth insight refer to [extensibility](#extensibility).
+Gossip4Net focuses on extensibility, which enables you to freely add and remove different behaviors. To get and in-depth insight, refer to [Extensibility](#extensibility).
 
 Request urls are handled by the `RequestUriModifier`, which takes an url and appends it to the currently processed http request.
 By injecting a custom instance into the request chain, you can modify the url as you like.
