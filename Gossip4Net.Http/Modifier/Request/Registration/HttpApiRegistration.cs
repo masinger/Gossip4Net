@@ -3,7 +3,7 @@ using Gossip4Net.Http.Builder.Request;
 
 namespace Gossip4Net.Http.Modifier.Request.Registration
 {
-    internal class HttpApiRegistration : RequestAttributeRegistration<HttpApi>
+    public class HttpApiRegistration : RequestAttributeRegistration<HttpApi>
     {
         public override IList<IHttpRequestModifier>? ForType(RequestTypeContext typeContext, IList<HttpApi> attributes)
         {

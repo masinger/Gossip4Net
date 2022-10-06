@@ -1,6 +1,6 @@
 ﻿namespace Gossip4Net.Http.Modifier.Response
 {
-    internal class RawHttpResponseConstructor : IResponseConstructor<HttpResponseMessage>
+    public class RawHttpResponseConstructor : IResponseConstructor<HttpResponseMessage>
     {
         public Task<ConstructedResponse<HttpResponseMessage>> ConstructResponseAsync(HttpResponseMessage responseMessage)
         {

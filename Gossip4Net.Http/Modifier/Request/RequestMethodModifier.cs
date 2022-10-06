@@ -1,6 +1,6 @@
 ﻿namespace Gossip4Net.Http.Modifier.Request
 {
-    internal class RequestMethodModifier : IHttpRequestModifier
+    public class RequestMethodModifier : IHttpRequestModifier
     {
         private readonly HttpMethod method;
 

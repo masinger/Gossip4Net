@@ -2,7 +2,7 @@
 
 namespace Gossip4Net.Http.Modifier.Request
 {
-    internal class RequestHeaderModifier : IHttpRequestModifier
+    public class RequestHeaderModifier : IHttpRequestModifier
     {
         private readonly Func<object?, string> valueConverter;
         private readonly IEnumerable<HeaderVariable> headerVariables;
