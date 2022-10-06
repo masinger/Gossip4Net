@@ -14,6 +14,11 @@ namespace Gossip4Net.Http.Modifier.Request.Registration
         public GlobalRequestRegistration(params IHttpRequestModifier[] modifiers) 
             : this(modifiers.ToList()) { }
 
+        public IList<IHttpRequestModifier>? ForType(RequestTypeContext typeContext, IEnumerable<Attribute> attributes)
+        {
+            return modifiers;
+        }
+        
         public IList<IHttpRequestModifier>? ForMethod(RequestMethodContext methodContext, IEnumerable<Attribute> attributes)
         {
             return null;
@@ -22,11 +27,6 @@ namespace Gossip4Net.Http.Modifier.Request.Registration
         public IList<IHttpRequestModifier>? ForParameter(RequestParameterContext parameterContext, IEnumerable<Attribute> attributes)
         {
             return null;
-        }
-
-        public IList<IHttpRequestModifier>? ForType(RequestTypeContext typeContext, IEnumerable<Attribute> attributes)
-        {
-            return modifiers;
         }
     }
 }
