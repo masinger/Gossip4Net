@@ -2,7 +2,7 @@
 
 namespace Gossip4Net.Http.Modifier.Response.Registration
 {
-    internal class RawResponseConstructorRegistration : IResponseConstructorRegistration
+    public class RawResponseConstructorRegistration : IResponseConstructorRegistration
     {
         public IList<IResponseConstructor>? ForMethod(ResponseMethodContext responseMethod)
         {
