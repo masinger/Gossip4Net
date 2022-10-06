@@ -35,6 +35,7 @@ Gossip4Net is an extensible http client middleware similar to Spring Feign. It a
         1. [Request modifiers](#request-modifiers)
         1. [Response modifiers](#response-modifiers)
         1. [Response constructors](#response-constructors)
+    1. [Example (adding XML support) ](#example-adding-xml-support)
 1. [Testing](#testing)
 
 ## Getting started
@@ -624,8 +625,8 @@ actual paremeters are received
      return response
 ```
 
-The eternal behavior is therefore determined by the set of registered request and response modifiers.
-In order to know which behaviors should be applied, the `HttpGossipBuilder<>` uses different modifier registrations.
+The entire behavior is therefore determined by the set of registered request and response modifiers.
+In order to deterine the behaviors to be applied, the `HttpGossipBuilder<>` uses different modifier registrations.
 These are responsible for registering intended behaviors based on certain criteria (e.g. an attribute is present).
 
 ```text
@@ -717,6 +718,302 @@ If it has ben unable, it should usually return `ConstructedResponse.Empty` inste
 
 An exception should only be thrown, if it should have definitely been able to process it (e.g. if the `JsonResponseConstructor` receivs an "application/json" response, but the body contains syntax errors).
 
+### Example (adding XML support) 
+In this example we will add support for XML request and response bodies. This feature is actually availble with `Gossip4Net.Http.Xml`, but you could also implement it yourself using the steps outlined below.
+
+#### Creating a project and adding dependencies
+At first, we need to make sure to install all required dependencies.
+If you want to separate Gossip4Net extensions from your "regular" code, you might as well create a new project within your solution.
+
+In this this example, we are creating a new C# library project called `Gossip4Net.Http.Xml` and target .NET 6.
+
+Next we need to be sure to install the following NuGet packages:
+- System.Runtime.Serialization.Xml (providing XML serialization)
+- Gossip4Net.Http
+
+#### Creating a custom ResponseConstructor
+The component that converts a http response into a model type is called "ResponseConstructor". 
+In our example, it should check if the response contains XML and then deserialize it into the requested return type.
+
+1. Create a new class and implement the IResponseConstructorInterface
+```csharp
+using Gossip4Net.Http.Modifier.Response;
+
+namespace Gossip4Net.Http.Xml.Modifier.Response
+{
+    internal class XmlResponseConstructor : IResponseConstructor
+    {
+        public async Task<ConstructedResponse> ConstructResponseAsync(HttpResponseMessage response)
+        {
+            throw new NotImplementedException();
+        }
+    }
+}
+
+```
+2. Next we are going to check if the received response contains XML by checking the content type
+```csharp
+using Gossip4Net.Http.Modifier.Response;
+
+namespace Gossip4Net.Http.Xml.Modifier.Response
+{
+    internal class XmlResponseConstructor : IResponseConstructor
+    {
+        private static readonly ISet<string> SupportedMediaTypes = new HashSet<string>()
+        {
+            "application/xml",
+            "text/xml"
+        };
+
+        public async Task<ConstructedResponse> ConstructResponseAsync(HttpResponseMessage response)
+        {
+            string? mediaType = response.Content.Headers.ContentType?.MediaType;
+            if (mediaType == null || !SupportedMediaTypes.Contains(mediaType))
+            {
+                
+            }
+        }
+    }
+}
+```
+3. If the response doesn't contain XML, we give up by returning `ConstructedResponse.Empty`.
+```csharp
+if (mediaType == null || !SupportedMediaTypes.Contains(mediaType))
+{
+    return ConstructedResponse.Empty;
+}
+```
+4. If it does, we will use a `XmlSerializer` to deserialize it. As we do not want to create a
+`XmlSerializer` everytime a request is executed, we inject an apropriate serializer using the constructor.
+```csharp
+using Gossip4Net.Http.Modifier.Response;
+using System.Xml.Serialization;
+
+namespace Gossip4Net.Http.Xml.Modifier.Response
+{
+    internal class XmlResponseConstructor : IResponseConstructor
+    {
+        private readonly XmlSerializer xmlSerializer;
+
+        public XmlResponseConstructor(XmlSerializer xmlSerializer)
+        {
+            this.xmlSerializer = xmlSerializer;
+        }
+
+        private static readonly ISet<string> SupportedMediaTypes = new HashSet<string>()
+        {
+            "application/xml",
+            "text/xml"
+        };
+
+        public async Task<ConstructedResponse> ConstructResponseAsync(HttpResponseMessage response)
+        {
+            string? mediaType = response.Content.Headers.ContentType?.MediaType;
+            if (mediaType == null || !SupportedMediaTypes.Contains(mediaType))
+            {
+                return ConstructedResponse.Empty;
+            }
+            object? responseObject = xmlSerializer.Deserialize(await response.Content.ReadAsStreamAsync());
+        }
+    }
+}
+
+```
+5. Once we deserialized the object, we can return it by wrapping it into a `ConstructedResponse`.
+```csharp
+return new ConstructedResponse(responseObject);
+```
+6. The final implementation should now look like this:
+```csharp
+using Gossip4Net.Http.Modifier.Response;
+using System.Xml.Serialization;
+
+namespace Gossip4Net.Http.Xml.Modifier.Response
+{
+    internal class XmlResponseConstructor : IResponseConstructor
+    {
+        private readonly XmlSerializer xmlSerializer;
+
+        public XmlResponseConstructor(XmlSerializer xmlSerializer)
+        {
+            this.xmlSerializer = xmlSerializer;
+        }
+
+        private static readonly ISet<string> SupportedMediaTypes = new HashSet<string>()
+        {
+            "application/xml",
+            "text/xml"
+        };
+
+        public async Task<ConstructedResponse> ConstructResponseAsync(HttpResponseMessage response)
+        {
+            string? mediaType = response.Content.Headers.ContentType?.MediaType;
+            if (mediaType == null || !SupportedMediaTypes.Contains(mediaType))
+            {
+                return ConstructedResponse.Empty;
+            }
+            object? responseObject = xmlSerializer.Deserialize(await response.Content.ReadAsStreamAsync());
+            return new ConstructedResponse(responseObject);
+        }
+    }
+}
+```
+
+#### Creating a response constructor registration
+1. In order to use our new `XmlResponseConstructor`, we need to be able to inject it into the request/response process. To do so, we create an implementation of `IResponseConstructorRegistration`.
+```csharp
+using Gossip4Net.Http.Builder.Response;
+using Gossip4Net.Http.Modifier.Response;
+using Gossip4Net.Http.Modifier.Response.Registration;
+
+namespace Gossip4Net.Http.Xml.Modifier.Response.Registration
+{
+    public class XmlResponseConstructorRegistration : IResponseConstructorRegistration
+    {
+        public IList<IResponseConstructor>? ForMethod(ResponseMethodContext responseMethod)
+        {
+            throw new NotImplementedException();
+        }
+    }
+}
+```
+2. As methods returning `void` or `Task` don't need to process the response body at all, we don't want to return a response constructor in these cases.
+Instead we can simply return `null` (or an empty list).
+```csharp
+public IList<IResponseConstructor>? ForMethod(ResponseMethodContext responseMethod)
+{
+    if (responseMethod.IsVoid)
+    {
+        return null;
+    }
+}
+```
+3. Otherwise we create a new `XmlSerializer` instance, capable of serializing the returned type.
+```csharp
+XmlSerializer xmlSerializer = new XmlSerializer(responseMethod.ProxyReturnType);
+```
+4. Now we can create a new instance of `XmlResponseConstructor` and return it. The implementation should now look like this:
+```csharp
+using Gossip4Net.Http.Builder.Response;
+using Gossip4Net.Http.Modifier.Response;
+using Gossip4Net.Http.Modifier.Response.Registration;
+using System.Xml.Serialization;
+
+namespace Gossip4Net.Http.Xml.Modifier.Response.Registration
+{
+    public class XmlResponseConstructorRegistration : IResponseConstructorRegistration
+    {
+        public IList<IResponseConstructor>? ForMethod(ResponseMethodContext responseMethod)
+        {
+            if (responseMethod.IsVoid)
+            {
+                return null;
+            }
+            XmlSerializer xmlSerializer = new XmlSerializer(responseMethod.ProxyReturnType);
+            return new List<IResponseConstructor>
+            {
+                new XmlResponseConstructor(xmlSerializer)
+            };
+        }
+    }
+}
+```
+
+#### Adding XML response support to the builder & testing it
+1. First we need to define our API interface and models
+```csharp
+using FluentAssertions;
+using Gossip4Net.Http.Attributes;
+using Gossip4Net.Http.Attributes.Mappings;
+using Gossip4Net.Http.Xml.Modifier.Response.Registration;
+using System.Xml.Serialization;
+
+namespace Gossip4Net.Http.Xml.Test
+{
+    [XmlRoot("slideshow")]
+    public record Slideshow([property: XmlAttribute("title")] string Title, [property: XmlAttribute("author")] string Author)
+    {
+        // Default constructor required by XmlSerializer
+        public Slideshow() : this(string.Empty, string.Empty) { }
+    }
+
+    [HttpApi("https://httpbin.org")]
+    public interface IXmlHttpBinClient {
+
+        [GetMapping("/xml")]
+        Task<Slideshow> GetSlideshow();
+    }
+}
+```
+2. Next we create a test case and a builder targeting our API definition
+```csharp
+using FluentAssertions;
+using Gossip4Net.Http.Attributes;
+using Gossip4Net.Http.Attributes.Mappings;
+using Gossip4Net.Http.Xml.Modifier.Response.Registration;
+using System.Xml.Serialization;
+
+namespace Gossip4Net.Http.Xml.Test
+{
+    public class GossipWithXmlTest
+    {
+        [Fact]
+        public async Task XmlResponseBodiesShouldGetDeserialized()
+        {
+            // Arrange
+            IHttpGossipBuilder<IXmlHttpBinClient> builder = new HttpGossipBuilder<IXmlHttpBinClient>();
+        }
+    }
+}
+```
+3. Now we need to add the XmlResponseConstructorRegistration.
+```csharp
+// Arrange
+IHttpGossipBuilder<IXmlHttpBinClient> builder = new HttpGossipBuilder<IXmlHttpBinClient>()
+    .WithRegistrations(reg => reg.With(new XmlResponseConstructorRegistration()));
+```
+4. Don't forget to add the default behavior (as the builder would instead lack any other "basic" feature).
+```csharp
+// Arrange
+IHttpGossipBuilder<IXmlHttpBinClient> builder = new HttpGossipBuilder<IXmlHttpBinClient>()
+    .WithRegistrations(reg => reg.With(new XmlResponseConstructorRegistration()))
+    .AddDefaultBehavior();
+```
+5. Use the `.Build()` method to implement your API definition and test the call.
+```csharp
+using FluentAssertions;
+using Gossip4Net.Http.Attributes;
+using Gossip4Net.Http.Attributes.Mappings;
+using Gossip4Net.Http.Xml.Modifier.Response.Registration;
+using System.Xml.Serialization;
+
+namespace Gossip4Net.Http.Xml.Test
+{
+    public class GossipWithXmlTest
+    {
+        [Fact]
+        public async Task XmlResponseBodiesShouldGetDeserialized()
+        {
+            // Arrange
+            IHttpGossipBuilder<IXmlHttpBinClient> builder = new HttpGossipBuilder<IXmlHttpBinClient>()
+                .WithRegistrations(reg => reg.With(new XmlResponseConstructorRegistration()))
+                .AddDefaultBehavior();
+
+            IXmlHttpBinClient client = builder.Build();
+
+            // Act
+            Slideshow slideshow = await client.GetSlideshow();
+
+            // Assert
+            slideshow.Title.Should().Be("Sample Slide Show");
+            slideshow.Author.Should().Be("Yours Truly");
+        }
+    }
+}
+```
+
+Congratulations - you've just implemented support for deserializing XML responses.
+
 ## Testing
 Testing a component that relies on the API is as easy as just implementing/mocking the API interface.
 
@@ -765,12 +1062,12 @@ public class DemoMockTest
         // Arrange
         Mock<IExampleApi> apiMock = new Mock<IExampleApi>();
         apiMock.Setup(api => api.Get())
-        .ReturnsAsync(new ExampleResponse(
-            Headers: new Dictionary<string, string> { { "Content-Type", "Example" }, { "Foo", "Bar" } },
-            Origin: "a string",
-            Url: "a url",
-            Args: new Dictionary<string, string>()
-        ));
+            .ReturnsAsync(new ExampleResponse(
+                Headers: new Dictionary<string, string> { { "Content-Type", "Example" }, { "Foo", "Bar" } },
+                Origin: "a string",
+                Url: "a url",
+                Args: new Dictionary<string, string>()
+            ));
         
         IExampleApi exampleApi = apiMock.Object;
         ExampleService serviceUnderTest = new ExampleService(exampleApi);
