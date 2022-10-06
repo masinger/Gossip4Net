@@ -27,6 +27,12 @@ namespace Gossip4Net.Http
         public Func<HttpClient> ClientProvider { get; set; } = () => new HttpClient();
         public Registrations Registrations { get; } = new Registrations();
 
+        public IHttpGossipBuilder<T> WithRegistrations(Action<Registrations> configAction)
+        {
+            configAction(Registrations);
+            return this;
+        }
+
         public T Build()
         {
             Type t = typeof(T);
