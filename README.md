@@ -25,6 +25,7 @@ Gossip4Net is an extensible http client middleware similar to Spring Feign. It a
     - [Request body](#request-body)
     - [Response body](#response-body)
     - [Json (de)serialization](#json-deserialization)
+    - [Xml (de)serialization](#xml-deserialization)
 1. [Authentication](#authentication)
     - [Basic auth](#basic-auth)
     - [OpenID with client secret](#openid-with-client-secret)
@@ -51,6 +52,10 @@ For usage within ASP.NET core:
 Install-Package Gossip4Net.Http.DependencyInjection
 ```
 
+For XML support
+```ps
+Install-Package Gossip4Net.Http.Xml
+```
 
 ### 1. Define your API contract and models
 ```csharp
@@ -489,6 +494,38 @@ JsonSerializerOptions options = new JsonSerializerOptions
 builder.Registrations.RequestAttributes.Add(new JsonRequestBodyRegistration(options));
 builder.Registrations.ResponseConstructors.Add(new JsonResponseConstructorRegistration(options));
 ```
+
+### XML (de)serialization
+XML support is provided by `Gossip4Net.Http.Xml` which must first be added via NuGet.
+
+In order to use it, add it to your gossip builder.
+```csharp
+IHttpGossipBuilder<IXmlHttpBinClient> builder = new HttpGossipBuilder<IXmlHttpBinClient>()
+    .AddXmlBehavior()
+    .AddDefaultBehavior();
+```
+
+There is also an `.AddXmlBehavior(bool applyByDefault)` overload, allowing you to
+enable/disable the automatic XML response deserialization for every API method. If `applyByDefault` is set to false or the parameterless overload is used, methods receiving XML responses need to have the `[XmlResponse]` attribute.
+
+If you want to provide a customized `XmlSerializer`, you may use the `.AddXmlBehavior(bool applyByDefault, Func<Type, XmlSerializer> serializerProvider)` overload.
+
+All attributes provided by `Gossip4Net.Http.Xml` are documented below.
+
+#### [NoXmlResponse]
+Can be applied to an API method, if the builder should not register a XML deserializer for this method (even if `applyByDefault` has been set to `true`).
+
+#### [XmlResponse]
+Needs to be applied to API methods expected to receive a XML response body, if `applyByDefault` has not been set to `true`.
+
+#### [XmlBody]
+Can be applied to a method parameter, in order to serialize it as a XML request body.
+
+*Available properties*
+| Property | Description | Default |
+|----------|-------------|---------|
+| `OmitEmpty` | If `true` and the argument value is `null`, no request body will be sent. | `true` |
+
 
 ## Authentication
 Authentication can be implemented using third-party `HttpClient` middleware tools (like the common [IdentityModel project](https://github.com/IdentityModel/IdentityModel) or another library of your choice).
