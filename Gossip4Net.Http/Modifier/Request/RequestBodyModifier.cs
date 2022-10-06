@@ -2,7 +2,6 @@
 {
     public class RequestBodyModifier : IHttpRequestModifier
     {
-
         private readonly int argIndex;
         private readonly Func<object?, Task<HttpContent>> contentBuilder;
         private readonly bool omitNull;
@@ -16,6 +15,11 @@
 
         public async Task<HttpRequestMessage> ApplyAsync(HttpRequestMessage requestMessage, object?[] args)
         {
+            if (requestMessage.Content != null)
+            {
+                return requestMessage;
+            }
+
             object? arg = args[argIndex];
 
             if (arg == null && omitNull)
