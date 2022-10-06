@@ -3,8 +3,8 @@ using Gossip4Net.Http.Attributes.Mappings;
 
 namespace Gossip4Net.Http.Test.Clients
 {
-    public record HttpBinResponse(IDictionary<string, string> headers, string origin, string url, IDictionary<string, string> args);
-    public record HttpBinPostResponse<T>(IDictionary<string, string> headers, string origin, string url, IDictionary<string, string> args, string data, T json);
+    public record HttpBinResponse(IDictionary<string, string> Headers, string Origin, string Url, IDictionary<string, string> Args);
+    public record HttpBinPostResponse<T>(IDictionary<string, string> Headers, string Origin, string Url, IDictionary<string, string> Args, string Data, T Json);
 
     public class Person {
         public string? Firstname { get; set; }

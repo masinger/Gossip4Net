@@ -4,7 +4,7 @@ using System.Text.Json;
 
 namespace Gossip4Net.Http.Modifier.Request.Registration
 {
-    public class JsonRequestBodyRegistration : RequestAttributeRegistration<Attribute>
+    public class JsonRequestBodyRegistration : RequestModifierRegistration<Attribute>
     {
 
         private readonly JsonSerializerOptions jsonSerializerOptions;

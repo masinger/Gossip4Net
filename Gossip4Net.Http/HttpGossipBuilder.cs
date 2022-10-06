@@ -10,10 +10,6 @@ namespace Gossip4Net.Http
 {
     public class HttpGossipBuilder<T> : IHttpGossipBuilder<T> where T:class
     {
-        public Func<HttpClient> ClientProvider { get; set; } = () => new HttpClient();
-
-        public Registrations Registrations { get; } = new Registrations();
-
         public static IHttpGossipBuilder<T> NewDefaultBuilder()
         {
             return new HttpGossipBuilder<T>().AddDefaultBehavior();
@@ -28,13 +24,16 @@ namespace Gossip4Net.Http
         {
         }
 
+        public Func<HttpClient> ClientProvider { get; set; } = () => new HttpClient();
+        public Registrations Registrations { get; } = new Registrations();
+
         public T Build()
         {
             Type t = typeof(T);
             RequestTypeContext requestTypeContext = new RequestTypeContext(t);
             
             IList<Attribute> allTypeAttributes = t.GetCustomAttributes<Attribute>().ToList();
-            List<IHttpRequestModifier> globalRequestModifiers = Registrations.RequestAttributes
+            List<IHttpRequestModifier> globalRequestModifiers = Registrations.RequestModifiers
                 .Select(it => it.ForType(requestTypeContext, allTypeAttributes))
                 .Where(it => it != null)
                 .SelectMany(it => it!)

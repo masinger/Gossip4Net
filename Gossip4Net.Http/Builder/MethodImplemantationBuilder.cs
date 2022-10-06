@@ -74,7 +74,7 @@ namespace Gossip4Net.Http.Builder
 
             IList<Attribute> allMethodAttributes = requestMethodContext.MethodInfo.GetCustomAttributes<Attribute>().ToList();
             requestModifiers.AddRange(
-                registrations.RequestAttributes
+                registrations.RequestModifiers
                     .Select(it => it.ForMethod(requestMethodContext, allMethodAttributes))
                     .Where(it => it != null)
                     .SelectMany(it => it!)
@@ -93,7 +93,7 @@ namespace Gossip4Net.Http.Builder
 
                 IList<Attribute> allParameterAttributes = parameterInfo.GetCustomAttributes<Attribute>().ToList();
                 requestModifiers.AddRange(
-                    registrations.RequestAttributes
+                    registrations.RequestModifiers
                         .Select(r => r.ForParameter(requestParameterContext, allParameterAttributes))
                         .Where(it => it != null)
                         .SelectMany(it => it!)
@@ -109,7 +109,7 @@ namespace Gossip4Net.Http.Builder
             ResponseMethodContext responseMethodContext = new ResponseMethodContext(returnType, method);
 
             IList<Attribute> allMethodAttributes = method.GetCustomAttributes<Attribute>().ToList();
-            List<IHttpResponseModifier> responseModifiers = registrations.ResponseAttributes
+            List<IHttpResponseModifier> responseModifiers = registrations.ResponseModifiers
                     .Select(it => it.ForMethod(responseMethodContext, allMethodAttributes))
                     .Where(it => it != null)
                     .SelectMany(it => it!)

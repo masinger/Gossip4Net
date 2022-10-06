@@ -3,7 +3,7 @@ using Gossip4Net.Http.Builder.Request;
 
 namespace Gossip4Net.Http.Modifier.Request.Registration
 {
-    public class PathVariableRegistration : RequestAttributeRegistration<PathVariable>
+    public class PathVariableRegistration : RequestModifierRegistration<PathVariable>
     {
         private readonly Func<object?, string> valueConverter;
 
