@@ -32,6 +32,25 @@ namespace Gossip4Net.Http.Xml.Test
     
     public class GossipWithXmlTest
     {
+
+        [Fact]
+        public async Task XmlResponseBodiesShouldGetDeserializedWhenUsingExtensionMethods()
+        {
+            // Arrange
+            IHttpGossipBuilder<IXmlHttpBinClient> builder = new HttpGossipBuilder<IXmlHttpBinClient>()
+                .AddXmlBehavior()
+                .AddDefaultBehavior();
+
+            IXmlHttpBinClient client = builder.Build();
+
+            // Act
+            Slideshow slideshow = await client.GetSlideshow();
+
+            // Assert
+            slideshow.Title.Should().Be("Sample Slide Show");
+            slideshow.Author.Should().Be("Yours Truly");
+        }
+
         [Fact]
         public async Task XmlResponseBodiesShouldGetDeserialized()
         {
