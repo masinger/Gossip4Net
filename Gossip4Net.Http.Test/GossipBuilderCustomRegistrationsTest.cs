@@ -18,6 +18,25 @@ namespace Gossip4Net.Http.Test
     public class GossipBuilderCustomRegistrationsTest
     {
         [Fact]
+        public async Task RequestBaseUrlsSetOnTheHttpClientShouldBe()
+        {
+            // Arrange
+            IHttpGossipBuilder<IRelativeHttpBinClient> builder = new HttpGossipBuilder<IRelativeHttpBinClient>().AddDefaultBehavior(new JsonSerializerOptions
+            {
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+            });
+            builder.ClientProvider = () => new HttpClient { BaseAddress = new Uri("https://httpbin.org") };
+
+            IRelativeHttpBinClient client = builder.Build();
+
+            // Act
+            HttpBinResponse response = await client.Get();
+
+            // Assert
+            response.Url.Should().Be("https://httpbin.org/get");
+        }
+
+        [Fact]
         public async Task RequestModifiersShouldBeAddedByHelperMethods()
         {
             // Arrange
