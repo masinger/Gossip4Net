@@ -5,7 +5,7 @@ using Gossip4Net.Http.Attributes;
 
 namespace Gossip4Net.Http.Modifier.Request
 {
-    internal class RequestQueryModifier : IHttpRequestModifier
+    public class RequestQueryModifier : IHttpRequestModifier
     {
         private readonly Func<object?, string> valueConverter;
         private readonly IEnumerable<QueryVariable> queryVariables;

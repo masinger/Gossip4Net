@@ -1,6 +1,6 @@
 ﻿namespace Gossip4Net.Http.Modifier.Request
 {
-    internal class RequestBodyModifier : IHttpRequestModifier
+    public class RequestBodyModifier : IHttpRequestModifier
     {
 
         private readonly int argIndex;

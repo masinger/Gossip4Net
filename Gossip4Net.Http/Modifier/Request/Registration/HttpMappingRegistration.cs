@@ -3,7 +3,7 @@ using Gossip4Net.Http.Builder.Request;
 
 namespace Gossip4Net.Http.Modifier.Request.Registration
 {
-    internal class HttpMappingRegistration : RequestAttributeRegistration<HttpMapping>
+    public class HttpMappingRegistration : RequestAttributeRegistration<HttpMapping>
     {
 
         public override IList<IHttpRequestModifier>? ForMethod(RequestMethodContext methodContext, IList<HttpMapping> atttributes)
