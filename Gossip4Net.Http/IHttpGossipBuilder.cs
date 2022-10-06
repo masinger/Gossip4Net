@@ -8,5 +8,10 @@ namespace Gossip4Net.Http
         public Func<HttpClient> ClientProvider { get; set; }
         public Registrations Registrations { get; }
 
+        public IHttpGossipBuilder<T> WithRegistrations(Action<Registrations> configAction)
+        {
+            configAction(Registrations);
+            return this;
+        }
     }
 }

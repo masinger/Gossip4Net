@@ -2,7 +2,6 @@ using Gossip4Net.Http.Test.Clients;
 using FluentAssertions;
 using System.Text.Json;
 using Gossip4Net.Http.Attributes;
-using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 
 namespace Gossip4Net.Http.Test
 {
@@ -53,7 +52,7 @@ namespace Gossip4Net.Http.Test
 
             // Assert
             result.Should().NotBeNull();
-            result.origin.Should().NotBeNullOrEmpty();
+            result.Origin.Should().NotBeNullOrEmpty();
         }
 
         [Fact]
@@ -64,7 +63,7 @@ namespace Gossip4Net.Http.Test
 
             // Assert
             result.Should().NotBeNull();
-            result.origin.Should().NotBeNullOrEmpty();
+            result.Origin.Should().NotBeNullOrEmpty();
         }
 
         [Fact]
@@ -75,8 +74,8 @@ namespace Gossip4Net.Http.Test
 
             // Assert
             result.Should().NotBeNull();
-            result.args.Should().ContainKey("testParam");
-            result.args["testParam"].Should().Be("foo");
+            result.Args.Should().ContainKey("testParam");
+            result.Args["testParam"].Should().Be("foo");
         }
 
         [Fact]
@@ -87,8 +86,8 @@ namespace Gossip4Net.Http.Test
 
             // Assert
             result.Should().NotBeNull();
-            result.args.Should().ContainKey("testParams");
-            result.args["testParams"].Should().Be("a,b,c");
+            result.Args.Should().ContainKey("testParams");
+            result.Args["testParams"].Should().Be("a,b,c");
         }
 
         [Fact]
@@ -99,10 +98,10 @@ namespace Gossip4Net.Http.Test
 
             // Assert
             result.Should().NotBeNull();
-            result.json.Should().NotBeNull();
-            result.json.Firstname.Should().Be("Foo");
-            result.json.Lastname.Should().Be("Bar");
-            result.json.Age.Should().Be(42);
+            result.Json.Should().NotBeNull();
+            result.Json.Firstname.Should().Be("Foo");
+            result.Json.Lastname.Should().Be("Bar");
+            result.Json.Age.Should().Be(42);
         }
 
         [Fact]
@@ -112,7 +111,7 @@ namespace Gossip4Net.Http.Test
             HttpBinPostResponse<Person> result = await client.PostAsync(new Person { Firstname = "Foo", Lastname = "Bar", Age = 42 });
 
             // Assert
-            result?.json.Should().NotBeNull();
+            result?.Json.Should().NotBeNull();
         }
 
 
@@ -130,8 +129,8 @@ namespace Gossip4Net.Http.Test
             HttpBinResponse result = await client.DeleteAsyncWithHeader("bar");
 
             // Assert
-            result.headers.Should().ContainKey("Actor"); // httpbin returns header names capitalized 
-            result.headers["Actor"].Should().Be("bar");
+            result.Headers.Should().ContainKey("Actor"); // httpbin returns header names capitalized 
+            result.Headers["Actor"].Should().Be("bar");
         }
 
         [Fact]
@@ -141,8 +140,8 @@ namespace Gossip4Net.Http.Test
             HttpBinResponse result = await client.GetAyncWithStaticHeader();
 
             // Assert
-            result.headers["Method-Header"].Should().Be("method");
-            result.headers["Interface-Header"].Should().Be("interface");
+            result.Headers["Method-Header"].Should().Be("method");
+            result.Headers["Interface-Header"].Should().Be("interface");
         }
 
         [Fact]
@@ -152,11 +151,11 @@ namespace Gossip4Net.Http.Test
             HttpBinResponse result = await client.GetAsyncWithStaticQuery();
 
             // Assert
-            result.args["interface"].Should().Be("True");
-            result.args["interface-index"].Should().Be("3");
+            result.Args["interface"].Should().Be("True");
+            result.Args["interface-index"].Should().Be("3");
 
-            result.args["method"].Should().Be("present");
-            result.args["method2"].Should().Be("a,b,c");
+            result.Args["method"].Should().Be("present");
+            result.Args["method2"].Should().Be("a,b,c");
         }
     }
 }
