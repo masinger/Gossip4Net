@@ -29,6 +29,12 @@ Gossip4Net is an extensible http client middleware similar to Spring Feign. It a
     - [Basic auth](#basic-auth)
     - [OpenID with client secret](#openid-with-client-secret)
 1. [Extensibility](#extensibility)
+    1. [The internals](#the-internals)
+        1. [Big picture](#big-picture)
+        1. [Registrations](#registrations)
+        1. [Request modifiers](#request-modifiers)
+        1. [Response modifiers](#response-modifiers)
+        1. [Response constructors](#response-constructors)
 1. [Testing](#testing)
 
 ## Getting started
@@ -585,7 +591,131 @@ public class OidcAuthTest
 ```
 
 ## Extensibility
-// TODO:
+
+### The internals
+
+#### Big picture
+A request/response-cycle always follows the process outlined below.
+
+```text
+actual paremeters are received
+            |
+            V
+   create a plain request
+            |
+            V
+   apply request modifiers
+            |
+            V
+ obtain a HttpClient instance
+            |
+            V
+       send request
+            |
+            V
+  apply response modifiers
+            |
+            V
+  apply response constructor
+  (creates an instance of the 
+    specified return type)
+            |
+            V
+     return response
+```
+
+The eternal behavior is therefore determined by the set of registered request and response modifiers.
+In order to know which behaviors should be applied, the `HttpGossipBuilder<>` uses different modifier registrations.
+These are responsible for registering intended behaviors based on certain criteria (e.g. an attribute is present).
+
+```text
+    plain HttpGossipBuilder<> is createad
+                    |
+                    V
+    registrations are added to the builder
+                    |
+                    V
+        .Build() method is invoked
+                    |
+                    V
+    the builder scans the API interface
+                    |
+                    V
+    registrations are invoked for each
+        present interface member
+                    |
+                    V
+    if applicable, behaviors are returned
+        by the invoked registration
+                    |
+                    V
+HttpGossipBuilder adds the returned behavior
+        to the request/response cycle
+                    |
+                    V
+ instance of the API interface is returned
+```
+
+#### Registrations
+As outlined [above](#big-picture), a registration is responsible for adding specific behaviors based on the API interface to be implemented.
+
+The interface to be implemented in order to register request modifiers, looks like that:
+
+```csharp
+public interface IRequestModifierRegistration
+{
+    IList<IHttpRequestModifier>? ForParameter(RequestParameterContext parameterContext, IEnumerable<Attribute> attributes);
+    IList<IHttpRequestModifier>? ForMethod(RequestMethodContext methodContext, IEnumerable<Attribute> attributes);
+    IList<IHttpRequestModifier>? ForType(RequestTypeContext typeContext, IEnumerable<Attribute> attributes);
+}
+```
+
+During the "implementation phase", the `ForType`, `ForMethod` and `ForParameter` methods are invoked by the builder.
+This is done for the interface type itself, each declared method and for each of their parameters.
+The registration's implementation can now decide, if the discovered member (or one of its attributes) justifies new behaviors to be applied. If so, a list of them are returned.
+
+The `IResponseModiferRegistration` and `IResponseConstructorRegistration` are following the same general principle.
+
+If a registration only intends to add behaviors based on an attribute of a given type, the `RequestModifierRegistration<TAttribute>` class can be inherited.
+
+#### Request modifiers
+A request modifier is responsible for manipulating a request before it gets send.
+Note that it is only invoked during the request/response cycle following a call to an API interface method.
+
+```csharp
+public interface IHttpRequestModifier
+{
+    Task<HttpRequestMessage> ApplyAsync(HttpRequestMessage requestMessage, object?[] args);
+}
+```
+It receivs the request to be modified as well as the actual parameters that have been passed into the interface method.
+After the relevant modifications are done, it must return the manipulated request message.
+
+#### Response modifiers
+A response modifier is responsible for manipulating a received response, before they are converted in the API interface method's return type.
+
+```csharp
+public interface IHttpResponseModifier
+{
+    HttpResponseMessage Modify(HttpResponseMessage response);
+}
+```
+
+### Response constructors
+A response constructor is the last instance to be invoked, before returning the final result to the caller.
+It is responsible for converting the manipulated http response into an object of the return type declared on the API's method.
+
+```csharp
+public interface IResponseConstructor
+{
+    public Task<ConstructedResponse> ConstructResponseAsync(HttpResponseMessage response);
+}
+```
+
+If the implementation has been able to process the response, it should return `ConstructuredResponse.Of(...)`. 
+If it has ben unable, it should usually return `ConstructedResponse.Empty` instead of throwing an exception (e.g. the `JsonResponseConstructor` receiving an "application/xml" response).
+
+An exception should only be thrown, if it should have definitely been able to process it (e.g. if the `JsonResponseConstructor` receivs an "application/json" response, but the body contains syntax errors).
 
 ## Testing
 Testing a component that relies on the API is as easy as just implementing/mocking the API interface.
