@@ -3,7 +3,7 @@ using Gossip4Net.Http.Builder.Request;
 
 namespace Gossip4Net.Http.Modifier.Request.Registration
 {
-    public class QueryValueRegistration : RequestAttributeRegistration<QueryValue>
+    public class QueryValueRegistration : RequestModifierRegistration<QueryValue>
     {
         private readonly Func<object?, string> valueConverter;
 

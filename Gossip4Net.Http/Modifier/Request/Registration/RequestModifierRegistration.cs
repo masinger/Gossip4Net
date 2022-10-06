@@ -3,10 +3,10 @@
 namespace Gossip4Net.Http.Modifier.Request.Registration
 {
     /// <summary>
-    /// This class provides default implementations for <see cref="IRequestAttributeRegistration"/>. It can be inherited in order to register custom request modifiers.
+    /// This class provides default implementations for <see cref="IRequestModifierRegistration"/>. It can be inherited in order to register custom request modifiers.
     /// </summary>
     /// <typeparam name="T">The attribute type, for which this registration will return request modifiers.</typeparam>
-    public abstract class RequestAttributeRegistration<T> : IRequestAttributeRegistration where T : Attribute
+    public abstract class RequestModifierRegistration<T> : IRequestModifierRegistration where T : Attribute
     {
 
         private static IList<T> FilterRelevantAttributes(IEnumerable<Attribute> attributes)
@@ -35,7 +35,7 @@ namespace Gossip4Net.Http.Modifier.Request.Registration
         /// <remarks>
         /// The parameter might as well have other active attributes (unassignable to <typeparamref name="T"/>).
         /// It is called, if it has no attributes of type <typeparamref name="T"/>.
-        /// In order to process parameters having no attributes at all, consider implementing <see cref="IRequestAttributeRegistration.ForParameter(RequestParameterContext, IEnumerable{Attribute})"/>.
+        /// In order to process parameters having no attributes at all, consider implementing <see cref="IRequestModifierRegistration.ForParameter(RequestParameterContext, IEnumerable{Attribute})"/>.
         /// </remarks>
         /// <param name="parameterContext">Information about the parameter being processed.</param>
         /// <returns>A list of request modifiers to be registered. The method might return null to indicate that there are no modifiers to be registered.</returns>

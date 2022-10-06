@@ -7,14 +7,14 @@ namespace Gossip4Net.Http
     public static class HttpGossipBuilderExtensions
     {
 
-        private static readonly IList<IRequestAttributeRegistration> BasicRequestAttributeRegistrations = new List<IRequestAttributeRegistration>()
+        private static readonly IList<IRequestModifierRegistration> BasicRequestAttributeRegistrations = new List<IRequestModifierRegistration>()
         {
             new HttpApiRegistration(),
             new HttpMappingRegistration(),
             new HeaderValueRegistration(),
         };
 
-        private static readonly IList<IResponseAttributeRegistration> BasicResponseAttributeRegistrations = new List<IResponseAttributeRegistration>()
+        private static readonly IList<IResponseModifierRegistration> BasicResponseAttributeRegistrations = new List<IResponseModifierRegistration>()
         {
             new ResponseSuccessRegistration()
         };
@@ -26,7 +26,7 @@ namespace Gossip4Net.Http
 
         public static IHttpGossipBuilder<T> AddJsonBehavior<T>(this IHttpGossipBuilder<T> instance, JsonSerializerOptions jsonSerializerOptions)
         {
-            instance.Registrations.RequestAttributes.Add(new JsonRequestBodyRegistration(jsonSerializerOptions));
+            instance.Registrations.RequestModifiers.Add(new JsonRequestBodyRegistration(jsonSerializerOptions));
             instance.Registrations.ResponseConstructors.Add(new JsonResponseConstructorRegistration(jsonSerializerOptions));
             return instance;
         }
@@ -38,13 +38,13 @@ namespace Gossip4Net.Http
 
         public static IHttpGossipBuilder<T> AddBasicBehavior<T>(this IHttpGossipBuilder<T> instance)
         {
-            foreach (IRequestAttributeRegistration registration in BasicRequestAttributeRegistrations)
+            foreach (IRequestModifierRegistration registration in BasicRequestAttributeRegistrations)
             {
-                instance.Registrations.RequestAttributes.Add(registration);
+                instance.Registrations.RequestModifiers.Add(registration);
             }
-            foreach (IResponseAttributeRegistration registration in BasicResponseAttributeRegistrations)
+            foreach (IResponseModifierRegistration registration in BasicResponseAttributeRegistrations)
             {
-                instance.Registrations.ResponseAttributes.Add(registration);
+                instance.Registrations.ResponseModifiers.Add(registration);
             }
             foreach (IResponseConstructorRegistration registration in BasicResponseConstructorRegistrations)
             {
@@ -55,10 +55,10 @@ namespace Gossip4Net.Http
 
         public static IHttpGossipBuilder<T> AddStringifyingBehavior<T>(this IHttpGossipBuilder<T> instance, Func<object?, string> stringifier)
         {
-            instance.Registrations.RequestAttributes.Add(new PathVariableRegistration(stringifier));
-            instance.Registrations.RequestAttributes.Add(new QueryVariableRegistration(stringifier));
-            instance.Registrations.RequestAttributes.Add(new HeaderVariableRegistration(stringifier));
-            instance.Registrations.RequestAttributes.Add(new QueryValueRegistration(stringifier));
+            instance.Registrations.RequestModifiers.Add(new PathVariableRegistration(stringifier));
+            instance.Registrations.RequestModifiers.Add(new QueryVariableRegistration(stringifier));
+            instance.Registrations.RequestModifiers.Add(new HeaderVariableRegistration(stringifier));
+            instance.Registrations.RequestModifiers.Add(new QueryValueRegistration(stringifier));
             return instance;
         }
 

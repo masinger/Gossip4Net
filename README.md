@@ -142,7 +142,7 @@ public interface MyApi {
 }
 ```
 
-If both are present and the url specified on the method mapping is relative, it will be resolved/appended to the url given in `[HttpApi]`.
+If both are present and the url specified on the method mapping is relative, it will be combined with the url given in `[HttpApi]`.
 
 ```csharp
 [HttpApi("https://httpbin.org")]
